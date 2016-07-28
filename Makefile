@@ -22,6 +22,8 @@ FFLAGS= -O3
 # Un comment here for gfortran 5
 #F90C     = gfortran-5
 #FFLAGS= -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none
+
+
 #The options here work in v4.5, delete from RHS in earlier versions (15% slower)
 #if pre v4.3 add -D__GFORTRAN__
 #With v4.6+ try -Ofast -march=native -fopenmp
