@@ -18,18 +18,10 @@ FFLAGS= -O3
 #FFLAGS += -mkl
 #endif
 
-#gfortran-5 , -openmp toggles mutli-processor:
-#note version 10.0 gives wrong result for lensed when compiled with -openmp [fixed in 10.1]
-#F90C     = gfortran-5  
-#FFLAGS= -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none 
-#FFLAGS = -O2 #3 -ffree-form -x f95-cpp-input
-## This is flag is passed to the Fortran compiler allowing it to link C++ if required (not usually):
-#F90CRLINK = -cxxlib
-#ifneq ($(FISHER),)
-#FFLAGS += # -mkl
-#endif
-
 #Gfortran compiler:
+# Un comment here for gfortran 5
+#F90C     = gfortran-5
+#FFLAGS= -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none
 #The options here work in v4.5, delete from RHS in earlier versions (15% slower)
 #if pre v4.3 add -D__GFORTRAN__
 #With v4.6+ try -Ofast -march=native -fopenmp
