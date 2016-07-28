@@ -1,5 +1,6 @@
 *.o
 
+*~
 *.mod
 camb
 *.dat
