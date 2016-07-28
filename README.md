@@ -46,3 +46,5 @@ The background evolution is computed in axion_background.f90, which creates an a
 
 You should be careful if you use any non-linear options (setting do_nonlinear \= 0). AxionCamb uses halofit_ppf.f90 with various modifications. The treatment of axions is not expected to be quantitatively correct, and various approximations are made (these will documented at a later date). The default version of halofit is set to the original "Smith" version, as this is expected to be most stable.
 You should also be careful of galaxy bias if you use galaxy survey data, as discussed in HGMF.
+Also please not that modern recombination codes (HyREC and CosmoREC) have not been appropriately modified  to include axions, but RecFAST has. This would be a useful fork for 
+someone to pursue.
