@@ -25,7 +25,7 @@ AxionCamb is also compatible as a module in cosmosis (https://bitbucket.org/joez
 
 Refer to CAMB documentation for all non-axion related things.
 AxionCamb adds one new fluid component: the axion fluid. This is included in equations_ppf.f90.
-The axion fluid is consistently incoroporated into the evolution of all background and perturbation variables, including, for example, recombination in recfast_axion.f90.
+The axion fluid is consistently incorporated into the evolution of all background and perturbation variables, including, for example, recombination in recfast_axion.f90.
 There are two new parameters: the axion mass, ma (measured in eV), and the axion energy density, omaxh2. These are entered in params.ini as usual.
 Sensible values for the axion mass range between 1e-33 and 1e-18, though the code works for values outside of this range.
 The axion fluid can function as either a dark matter component or a dark energy component depending on the mass.
