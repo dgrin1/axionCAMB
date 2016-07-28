@@ -1,0 +1,7 @@
+*.o
+
+*.mod
+camb
+*.dat
+*.ini
+*.i90
