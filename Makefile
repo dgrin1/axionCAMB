@@ -9,13 +9,24 @@ FISHER=
 
 #Intel , -openmp toggles mutli-processor:
 #note version 10.0 gives wrong result for lensed when compiled with -openmp [fixed in 10.1]
-F90C     = gfortran-5  
-FFLAGS= -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none 
+F90C     = ifort
+FFLAGS= -O3
 #FFLAGS = -O2 #3 -ffree-form -x f95-cpp-input
 ## This is flag is passed to the Fortran compiler allowing it to link C++ if required (not usually):
 #F90CRLINK = -cxxlib
 #ifneq ($(FISHER),)
-FFLAGS += # -mkl
+#FFLAGS += -mkl
+#endif
+
+#gfortran-5 , -openmp toggles mutli-processor:
+#note version 10.0 gives wrong result for lensed when compiled with -openmp [fixed in 10.1]
+#F90C     = gfortran-5  
+#FFLAGS= -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none 
+#FFLAGS = -O2 #3 -ffree-form -x f95-cpp-input
+## This is flag is passed to the Fortran compiler allowing it to link C++ if required (not usually):
+#F90CRLINK = -cxxlib
+#ifneq ($(FISHER),)
+#FFLAGS += # -mkl
 #endif
 
 #Gfortran compiler:
@@ -26,7 +37,6 @@ FFLAGS += # -mkl
 #F90C     = gfortran -ffast-math
 ##FFLAGS =  -O2  
 #-ffast-math 
-
 
 #Old Intel ifc, add -openmp for multi-processor (some have bugs):
 #F90C     = ifc
