@@ -30,7 +30,6 @@ There are two new parameters: the axion mass, ma (measured in eV), and the axion
 Sensible values for the axion mass range between 1e-33 and 1e-18, though the code works for values outside of this range.
 The axion fluid can function as either a dark matter component or a dark energy component depending on the mass.
 
-Isocurvature perturbations in the axion fluid can be turned on using initial_condition=6.
 AxionCamb can be used in conjunction with the additional neutrino parameters of neutrino mass and number of species.
 AxionCamb cannot (currently) be used in conjunction with additional dark energy parameters, such as the equation of state.
 
