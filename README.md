@@ -26,12 +26,21 @@ axionCAMB is also compatible as a module in cosmosis (https://bitbucket.org/joez
 Refer to CAMB documentation for all non-axion related things.
 axionCAMB adds one new fluid component: the axion fluid. This is included in equations_ppf.f90.
 The axion fluid is consistently incorporated into the evolution of all background and perturbation variables, including, for example, recombination in recfast_axion.f90.
-There are two new parameters: the axion mass, ma (measured in eV), and the axion energy density, omaxh2. These are entered in params.ini as usual.
+There are two new parameters: the axion mass, ma (measured in eV), and the axion energy density, parameterized by the axion
+energy density today, divided by the critical density, multiplied by the squared dimensionless Hubble parameter h. The 
+axion density parameter ion axionCAMB is thus omaxh2. As an alternative, the user may set the axion fraction 
+axfrac=omaxh2/(omaxh2+omch2), where omch2 parameterizes the standard cold dark matter density. To use this parameterization, set
+use_axfrac=T in the .ini file. The code will then ignore omaxh2 and use axfrac instead.
+
+These are entered in params.ini as usual.
 Sensible values for the axion mass range between 1e-33 and 1e-18, though the code works for values outside of this range.
 The axion fluid can function as either a dark matter component or a dark energy component depending on the mass.
 
 axionCAMB can be used in conjunction with the additional neutrino parameters of neutrino mass and number of species.
 axionCAMB cannot (currently) be used in conjunction with additional dark energy parameters, such as the equation of state.
+axionCAMB outputs one additional derived parameter, a_osc, the cosmological scale factor when ma=3H. If the axion has not yet
+started to oscillate even today, we set a flat value of a_osc=1 to avoid having to propagate scalar field equations of motion 
+into the future beyond the scale factor integration range of interest.
 
 ----------------------------------------------------------------------
 #### <a name="physics"></a>Physics
