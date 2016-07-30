@@ -48,7 +48,10 @@ into the future beyond the scale factor integration range of interest.
 At early times, the fluid equations solved are equivalent to the first order perturbed Klein-Gordon equation in synchronous gauge.
 At late times, the WKB approximation matches the axion field to an effective fluid with equation of state zero, and a scale-dependent sound speed.
 The energy density is found using a shooting method from an initial guess for the axion field value. 
-The background evolution is computed in axion_background.f90, which creates an array for the axion equation of state. This array is carried around everywhere the energy densities are needed.
+The background evolution is computed in axion_background.f90, which creates an array for the axion equation of state. This array is carried around everywhere the energy densities are needed. If the user is curious
+in the evolution of these quantities for various parameters value (or to build intuition for the behavior of observables),
+the user may put print statements in this code. Throughout the rest of CAMB, the output of this is module is used an applied
+as needed via cubic-spline interpolation.
 
 ----------------------------------------------------------------------
 #### <a name="warnings"></a>Known Issues and Warnings
