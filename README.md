@@ -54,6 +54,11 @@ the user may put print statements in this code. Throughout the rest of CAMB, the
 as needed via cubic-spline interpolation.
 
 ----------------------------------------------------------------------
+#### <a name="Other"></a>Other
+Note that the code is heavily commented throughout wherever we have made an axion-related change wherever there is a long sequence of exclamation marks.
+
+
+----------------------------------------------------------------------
 #### <a name="warnings"></a>Known Issues and Warnings
 
 You should be careful if you use any non-linear options (setting do_nonlinear \= 0). axionCAMB uses halofit_ppf.f90 with various modifications. The treatment of axions is not expected to be quantitatively correct, and various approximations are made (these will documented at a later date). The default version of halofit is set to the original "Smith" version, as this is expected to be most stable.
