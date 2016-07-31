@@ -40,8 +40,7 @@ axionCAMB can be used in conjunction with the additional neutrino parameters of 
 axionCAMB cannot (currently) be used in conjunction with additional dark energy parameters, such as the equation of state.
 axionCAMB outputs one additional derived parameter, a_osc, the cosmological scale factor when ma=3H. If the axion has not yet
 started to oscillate even today, we set a flat value of a_osc=1 to avoid having to propagate scalar field equations of motion 
-into the future beyond the scale factor integration range of interest.
-A set of ultra-light axion parameters are added to the standard CAMB data structures, notably in modules.f90 in the module ModelParams, along with tables of the axion energy density and equation of state as a function of cosmological scale factor.
+into the future beyond the scale factor integration range of interest. A set of ultra-light axion parameters are added to the standard CAMB data structures, notably in modules.f90 in the module ModelParams, along with tables of the axion energy density and equation of state as a function of cosmological scale factor.
 ----------------------------------------------------------------------
 #### <a name="physics"></a>Physics
 
