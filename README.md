@@ -13,7 +13,7 @@ CODE Authors:
 * David JE Marsh
 * Renee Hlozek
 
-axionCAMB is a modified version of the publicly available code "CAMB," which is available at http://camb.info/ and on GitHub at https://github.com/cmbant/CAMB
+axionCAMB is a modified version of the publicly available code "CAMB," which is available at http://camb.info/ and on GitHub at https://github.com/cmbant/CAMB.
 axionCAMB computes cosmological observables for comparison with data. This is normally the CMB power spectra (T,E,B,\phi in auto and cross power), but also includes the matter power spectrum. 
 We try and keep axionCAMB up to date with developments in CAMB, but the codes are independent, so they may not always be equivalent. The "base" version of CAMB that axionCAMB is built off is Nov13. 
 The physics of axionCAMB is described in detail in http://arxiv.org/abs/1410.2896 (HGMF). When using this code, you should cite HGMF, and the original version of CAMB.
