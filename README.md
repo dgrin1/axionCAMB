@@ -41,7 +41,9 @@ axionCAMB cannot (currently) be used in conjunction with additional dark energy 
 axionCAMB outputs one additional derived parameter, a_osc, the cosmological scale factor when ma=3H. If the axion has not yet
 started to oscillate even today, we set a flat value of a_osc=1 to avoid having to propagate scalar field equations of motion 
 into the future beyond the scale factor integration range of interest.
-
+A set of ultra-light axion parameters are added to the standard CAMB data structures,
+notably in modules.f90 in the module ModelParams, along with tables of the axion
+energy density and equation of state as a function of cosmological scale factor.
 ----------------------------------------------------------------------
 #### <a name="physics"></a>Physics
 
@@ -63,5 +65,5 @@ Note that the code is heavily commented throughout wherever we have made an axio
 
 You should be careful if you use any non-linear options (setting do_nonlinear \= 0). axionCAMB uses halofit_ppf.f90 with various modifications. The treatment of axions is not expected to be quantitatively correct, and various approximations are made (these will documented at a later date). The default version of halofit is set to the original "Smith" version, as this is expected to be most stable.
 You should also be careful of galaxy bias if you use galaxy survey data, as discussed in HGMF.
-Also please not that modern recombination codes (HyREC and CosmoREC) have not been appropriately modified  to include axions, but RecFAST has. This would be a useful fork for 
+Also please not that modern recombination codes (HyREC and CosmoREC) have not been appropriately modified  to include axions, but RecFAST has [see recfast.f90]. This would be a useful fork for 
 someone to pursue. As such, we only endorse the use of this code with the latest version of RecFAST.
