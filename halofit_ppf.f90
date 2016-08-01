@@ -23,6 +23,9 @@
     !   separate halofit.f90 is no longer needed as equations.f90 defined fixed wa_ppf
     ! Jan 15: Suggested change from Simeon Bird to avoid issues with very large Omm and neutrinos
 
+	! Aug 16: public release of axionCAMB. See comment on how axions are treated below.
+	! Further discussion in Hlozek et al (arXiv:1607.08208)
+
     !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     module NonLinear
