@@ -167,6 +167,10 @@ integer badflag
        
     end if
 
+    if(P%ma .ge. 1e-15) then
+       print*, "Warning: you have chosen a high axion mass. Entropy production is not included, and may affect the relic abundance calculation."
+    endif
+    
     P%tcmb   = Ini_Read_Double('temp_cmb',COBE_CMBTemp)
     P%yhe    = Ini_Read_Double('helium_fraction',0.24_dl)
 

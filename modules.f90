@@ -473,7 +473,8 @@
         write(*, '("H0                  = ", f9.6)') CP%H0
         !Axions                                                                                                                    
         write(*,'("Om_ax h^2            = ",f9.6)') CP%omegaax*(CP%H0/100)**2
-        write(*,'("a_osc               = ",e9.2)')  a_osc
+        write(*,'("a_osc               = ", e9.2)')  a_osc
+        write(*,'("phi_init            = ", f9.6)') CP%phiinit
 
 
 !!!!!!!!
