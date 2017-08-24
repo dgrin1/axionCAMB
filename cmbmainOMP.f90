@@ -127,15 +127,15 @@
 
     subroutine cmbmain
     integer q_ix
-!    real clock_start, clock_stop ! RH timing   
-!    real clock_totstart, clock_totstop ! RH timing   
+    real clock_start, clock_stop ! RH timing   
+    real clock_totstart, clock_totstop ! RH timing   
 
     type(EvolutionVars) EV
     !     Timing variables for testing purposes. Used if DebugMsgs=.true. in ModelParams
     real(sp) actual,timeprev,starttime
 
-!    clock_totstart = 0
-!    call cpu_time(clock_totstart) ! RH timing 
+    clock_totstart = 0
+    call cpu_time(clock_totstart) ! RH timing 
     WantLateTime =  CP%DoLensing .or. num_redshiftwindows > 0
 
     if (CP%WantCls) then
@@ -150,10 +150,10 @@
             maximum_qeta = CP%Max_eta_k
         end if
 
-!        call cpu_time(clock_start) ! RH timing 
+        call cpu_time(clock_start) ! RH timing 
         call initlval(lSamp, maximum_l)
-!        call cpu_time(clock_stop) ! RH timing 
-!        print*, 'this is how long initlval takes in cmbmain', clock_stop - clock_start 
+        call cpu_time(clock_stop) ! RH timing 
+        print*, 'this is how long initlval takes in cmbmain', clock_stop - clock_start 
     end if
 
 
@@ -161,12 +161,12 @@
         actual=GetTestTime()
         starttime=actual !times don't include reading the Bessel file
     end if
-!    clock_start = 0
-!    call cpu_time(clock_start) ! RH timing 
+    clock_start = 0
+    call cpu_time(clock_start) ! RH timing 
     call InitVars !Most of single thread time spent here (in InitRECFAST)
-!    clock_stop = 0
-!    call cpu_time(clock_stop) ! RH timing 
-!    print*, 'this is how long it takes to InitVars in cmbmain', clock_stop - clock_start
+    clock_stop = 0
+    call cpu_time(clock_stop) ! RH timing 
+    print*, 'this is how long it takes to InitVars in cmbmain', clock_stop - clock_start
     if (global_error_flag/=0) return
 
     if (DebugMsgs .and. Feedbacklevel > 0) then
@@ -180,12 +180,12 @@
     !if (.not. CP%OnlyTransfers .or. CP%NonLinear==NonLinear_Lens)  call InitializePowers(CP%InitPower,CP%curv)
     if (.not. CP%OnlyTransfers .or. CP%NonLinear==NonLinear_Lens .or. CP%NonLinear==NonLinear_both) then
        
- !      clock_start = 0
- !      call cpu_time(clock_start) ! RH timing 
+       clock_start = 0
+       call cpu_time(clock_start) ! RH timing 
        call InitializePowers(CP%InitPower,CP%curv)
- !      clock_stop = 0
- !      call cpu_time(clock_stop) ! RH timing 
- !      print*, 'timing of InitializePowers in cmbmain', clock_stop - clock_start
+       clock_stop = 0
+       call cpu_time(clock_stop) ! RH timing 
+       print*, 'timing of InitializePowers in cmbmain', clock_stop - clock_start
     end if
        
     if (global_error_flag/=0) return
@@ -193,33 +193,33 @@
     !Calculation of the CMB sources.
 
     if (CP%WantCls) then
-!       clock_start = 0
-!       call cpu_time(clock_start) ! RH timing 
+       clock_start = 0
+       call cpu_time(clock_start) ! RH timing 
        call SetkValuesForSources
-!       clock_stop = 0
-!       call cpu_time(clock_stop) ! RH timing 
-!       print*, 'timing for SetkValuesForSources in cmbmain', clock_stop - clock_start
+       clock_stop = 0
+       call cpu_time(clock_stop) ! RH timing 
+       print*, 'timing for SetkValuesForSources in cmbmain', clock_stop - clock_start
     end if
     
     if (CP%WantTransfer) then 
-!       clock_start = 0
-!       call cpu_time(clock_start) ! RH timing
+       clock_start = 0
+       call cpu_time(clock_start) ! RH timing
        call InitTransfer
-!       clock_stop = 0
-!       call cpu_time(clock_stop) ! RH timing
-!       print*, 'timing for InitTransfer in cmbmain', clock_stop - clock_start
+       clock_stop = 0
+       call cpu_time(clock_stop) ! RH timing
+       print*, 'timing for InitTransfer in cmbmain', clock_stop - clock_start
     end if
     !***note that !$ is the prefix for conditional multi-processor compilation***
     !$ if (ThreadNum /=0) call OMP_SET_NUM_THREADS(ThreadNum)
 
     if (CP%WantCls) then
         if (DebugMsgs .and. Feedbacklevel > 0) write(*,*) 'Set ',Evolve_q%npoints,' source k values'
-!        clock_start = 0
-!        call cpu_time(clock_start) ! RH timing 
+        clock_start = 0
+        call cpu_time(clock_start) ! RH timing 
         call GetSourceMem
-!        clock_stop = 0
-!        call cpu_time(clock_stop) ! RH timing 
-!        print*, 'timing for GetSourceMem in cmbmain', clock_stop - clock_start
+        clock_stop = 0
+        call cpu_time(clock_stop) ! RH timing 
+        print*, 'timing for GetSourceMem in cmbmain', clock_stop - clock_start
 
         if (CP%WantScalars) then
             ThisCT => CTransScal
@@ -234,17 +234,17 @@
 
         !$OMP PARAllEl DO DEFAUlT(SHARED),SCHEDUlE(DYNAMIC) &
         !$OMP & PRIVATE(EV, q_ix)
-!        print*, 'Im going to DoSourcek for Evolve_q%npoints times: ', Evolve_q%npoints
-!        clock_start = 0
-!        call cpu_time(clock_start) ! RH timing 
+        print*, 'Im going to DoSourcek for Evolve_q%npoints times: ', Evolve_q%npoints
+        clock_start = 0
+        call cpu_time(clock_start) ! RH timing 
         do q_ix= 1,Evolve_q%npoints
             if (global_error_flag==0) then 
                call DoSourcek(EV,q_ix)
             end if
         end do
-!        clock_stop = 0
-!        call cpu_time(clock_stop) ! RH timing 
-!        print*, 'timing for DoSourceK in cmbmain', clock_stop - clock_start
+        clock_stop = 0
+        call cpu_time(clock_stop) ! RH timing 
+        print*, 'timing for DoSourceK in cmbmain', clock_stop - clock_start
        !$OMP END PARAllEl DO
        
         if (DebugMsgs .and. Feedbacklevel > 0) then
@@ -255,30 +255,24 @@
 
     endif !WantCls
 
-    
     ! If transfer functions are requested, set remaining k values and output
     if (CP%WantTransfer .and. global_error_flag==0) then
-!       clock_start = 0
-!       call cpu_time(clock_start) ! RH timing 
         call TransferOut
         if (DebugMsgs .and. Feedbacklevel > 0) then
             timeprev=actual
             actual=GetTestTime()
             write(*,*) actual-timeprev,' Timing for transfer k values'
         end if
-!        clock_stop = 0
-!         call cpu_time(clock_stop) ! RH timing 
-!         print*, 'timing for TransferOut in cmbmain', clock_stop - clock_start
     end if
 
     if (CP%WantTransfer .and. CP%WantCls .and. WantLateTime &
     .and. (CP%NonLinear==NonLinear_Lens .or. CP%NonLinear==NonLinear_both) .and. global_error_flag==0) then
-!       clock_start = 0
-!       call cpu_time(clock_start) ! RH timing  
+       clock_start = 0
+       call cpu_time(clock_start) ! RH timing  
         call MakeNonlinearSources
-!        clock_stop = 0
-!        call cpu_time(clock_stop) ! RH timing 
-!        print*, 'timing for MakeNonlinearSources in cmbmain', clock_stop - clock_start
+        clock_stop = 0
+        call cpu_time(clock_stop) ! RH timing 
+        print*, 'timing for MakeNonlinearSources in cmbmain', clock_stop - clock_start
 
         if (DebugMsgs .and. Feedbacklevel > 0) then
             timeprev=actual
@@ -288,12 +282,12 @@
     end if
 
     if (CP%WantTransfer .and. .not. CP%OnlyTransfers .and. global_error_flag==0) then
-!       clock_start = 0
-!       call cpu_time(clock_start) ! RH timing
+       clock_start = 0
+       call cpu_time(clock_start) ! RH timing
        call Transfer_Get_sigma8(MT,8._dl)
-!       clock_stop = 0
-!       call cpu_time(clock_stop) ! RH timing
-!       print*, 'timing for Transfer_Get_sigma8 in cmbmain', clock_stop - clock_start
+       clock_stop = 0
+       call cpu_time(clock_stop) ! RH timing
+       print*, 'timing for Transfer_Get_sigma8 in cmbmain', clock_stop - clock_start
     end if
     !Can call with other arguments if need different size
 
@@ -303,12 +297,12 @@
     if (CP%WantCls) then
 
         if (global_error_flag==0) then
-!           clock_start = 0
-!           call cpu_time(clock_start) ! RH timing 
+           clock_start = 0
+           call cpu_time(clock_start) ! RH timing 
             call InitSourceInterpolation
-!            clock_stop = 0
-!            call cpu_time(clock_stop) ! RH timing 
-!            print*, 'timing for InitSourceInterpolation in cmbmain', clock_stop - clock_start !RH timing
+            clock_stop = 0
+            call cpu_time(clock_stop) ! RH timing 
+            print*, 'timing for InitSourceInterpolation in cmbmain', clock_stop - clock_start !RH timing
 
             ExactClosedSum = CP%curv > 5e-9_dl .or. scale < 0.93_dl
 
@@ -316,12 +310,12 @@
             max_bessels_etak  = maximum_qeta
 
             if (CP%WantScalars) then 
-!               clock_start =0
-!               call cpu_time(clock_start) ! RH timing  
+               clock_start =0
+               call cpu_time(clock_start) ! RH timing  
                call GetLimberTransfers
-!               clock_stop = 0
-!               call cpu_time(clock_stop) ! RH timing 
-!               print*, 'timing for GetLimberTransfers in cmbmain', clock_stop - clock_start
+               clock_stop = 0
+               call cpu_time(clock_stop) ! RH timing 
+               print*, 'timing for GetLimberTransfers in cmbmain', clock_stop - clock_start
             end if
             ThisCT%max_index_nonlimber = max_bessels_l_index
 
@@ -335,15 +329,15 @@
 
             !Begin k-loop and integrate Sources*Bessels over time
             !$OMP PARAllEl DO DEFAUlT(SHARED),SHARED(TimeSteps), SCHEDUlE(STATIC,4)
-!            print*, 'SourceToTransfers is going to integrate ThisCT%q%npoints times', ThisCT%q%npoints
-!            clock_start = 0
-!            call cpu_time(clock_start) ! RH timing  
+            print*, 'SourceToTransfers is going to integrate ThisCT%q%npoints times', ThisCT%q%npoints
+            clock_start = 0
+            call cpu_time(clock_start) ! RH timing  
             do q_ix=1,ThisCT%q%npoints
                 call SourceToTransfers(q_ix)
             end do !q loop
-!            clock_stop = 0
-!            call cpu_time(clock_stop) ! RH timing  
-!            print*, 'timing for SourceToTransfersLoop in cmbmain', clock_stop - clock_start ! RH timing
+            clock_stop = 0
+            call cpu_time(clock_stop) ! RH timing  
+            print*, 'timing for SourceToTransfersLoop in cmbmain', clock_stop - clock_start ! RH timing
             !$OMP END PARAllEl DO
 
             if (DebugMsgs .and. Feedbacklevel > 0) then
@@ -361,14 +355,14 @@
  !       print*, 'timing for FreeSourceMem in cmbmain', clock_stop - clock_start
 
         !Final calculations for CMB output unless want the Cl transfer functions only.
+
         if (.not. CP%OnlyTransfers .and. global_error_flag==0) then
-!           clock_start = 0
-!           call cpu_time(clock_start) ! RH timing  
-!!! RH axions need to be called again here !!!
+           clock_start = 0
+           call cpu_time(clock_start) ! RH timing  
            call ClTransferToCl(CTransScal,CTransTens, CTransVec)
-!           clock_stop = 0
-!           call cpu_time(clock_stop) ! RH timing  
-!           print*, 'this is the timing for ClTransferToCl in cmbmain', clock_stop - clock_start
+           clock_stop = 0
+           call cpu_time(clock_stop) ! RH timing  
+           print*, 'this is the timing for ClTransferToCl in cmbmain', clock_stop - clock_start
         end if
     end if
 
@@ -379,9 +373,9 @@
         write(*,*) actual -starttime,' Timing for whole of cmbmain'
     end if
     
-!    clock_totstop = 0
-!    call cpu_time(clock_totstop) ! RH timing 
-!    print*, 'timing for the whole of cmbmain inside it', clock_totstop - clock_totstart ! RH timing
+    clock_totstop = 0
+    call cpu_time(clock_totstop) ! RH timing 
+    print*, 'timing for the whole of cmbmain inside it', clock_totstop - clock_totstart ! RH timing
     end subroutine cmbmain
 
     subroutine ClTransferToCl(CTransS,CTransT, CTransV)
@@ -601,15 +595,12 @@
     real(dl) amin,q_switch_lowk,q_switch_lowk1,q_switch_osc,q_switch_highk
     real(dl), dimension(:), allocatable :: q_transfer
 
-!    print*, 'In InitTransfer the kmax value being used is: ', CP%Transfer%kmax 
-
     if (CP%Transfer%k_per_logint==0) then
         !Optimized spacing
         !Large log spacing on superhorizon scales
         !Linear spacing for horizon scales and first few baryon osciallations
         !Log spacing for last few oscillations
         !large log spacing for small scales
-
 
         boost = AccuracyBoost
         if (CP%Transfer%high_precision) boost = boost*1.5
@@ -1225,7 +1216,6 @@
     !$OMP PARAllEl DO DEFAUlT(SHARED),SCHEDUlE(DYNAMIC) &
     !$OMP & PRIVATE(EV, tau, q_ix)
 
-!    print*, 'I am going to loop over MT%num_q_trans wavenumbers and Evolve_q%npoints', MT%num_q_trans, Evolve_q%npoints !RH timing
     !     loop over wavenumbers.
     do q_ix=Evolve_q%npoints+1,MT%num_q_trans
         EV%TransferOnly=.true. !in case we want to do something to speed it up

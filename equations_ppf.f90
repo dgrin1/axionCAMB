@@ -269,22 +269,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !Spline for axion energy density of a<aosc, otherwise just use a^-3 scaling
-    	if (a .lt. CP%a_osc) then
-        call spline_out(CP%loga_table,CP%grhoax_table,CP%grhoax_table_buff,ntable,dlog10(a),gr)
-        !write(*,*) a, gr
-        !compute log10 of density use of interpolation
-        !print*,a,grhoc,grhom*(1.0d1**(dble(gr)))/((grhoc+grhob)/(a**3.0d0))
-        if (gr .eq. gr) then
-           !delog it and multiply by physical units
-           dorp=grhom*(1.0d1**(dble(gr)))
-        else
-           dorp=0.0d0
-        endif
-        else
-        	dorp=grhom*CP%drefp_hsq*((CP%a_osc/a)**3.0d0)
-        
-        endif
-        grhoa2=grhoa2+dorp*(a2**2.0d0)
+    if (a .lt. CP%a_osc) then
+       call spline_out(CP%loga_table,CP%grhoax_table,CP%grhoax_table_buff,ntable,dlog10(a),gr)
+
+       !compute log10 of density use of interpolation
+       !print*,a,grhoc,grhom*(1.0d1**(dble(gr)))/((grhoc+grhob)/(a**3.0d0))
+       if (gr .eq. gr) then
+          !delog it and multiply by physical units
+          dorp=grhom*(1.0d1**(dble(gr)))
+       else
+          dorp=0.0d0
+       endif
+    else
+       dorp=grhom*CP%drefp_hsq*((CP%a_osc/a)**3.0d0)
+       
+    endif
+    grhoa2=grhoa2+dorp*(a2**2.0d0)
+    
+    !if ((1-a) .lt. 1e-13) then
+    !   stopwrite=False
+    !   write(887,*) a, grhoa2/const_rhocrit    
+    !end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -337,194 +342,196 @@
     integer, parameter :: max_l_evolve = 1024 !Maximum l we are ever likely to propagate
 
     !Supported scalar initial condition flags
-    integer, parameter :: initial_adiabatic=1, initial_iso_CDM=2, &
-         initial_iso_baryon=3,  initial_iso_neutrino=4, initial_iso_neutrino_vel=5, initial_vector = 0
-!!!!!!!!!!!!!!!!!!!!!!!!!
-    integer, parameter :: initial_nummodes =  initial_iso_neutrino_vel 
-!!!!!!!!!!!!!!!!!!!!
+ integer, parameter :: initial_adiabatic=1, initial_iso_CDM=2, &
+         initial_iso_baryon=3,  initial_iso_neutrino=4, initial_iso_neutrino_vel=5, initial_vector = 0, &
+	!!!!!!!!!!!!!!!!!!!!!!!!!
+	!!Isocurvature initial condition flags
+		 initial_iso_axion=6 
+         integer, parameter :: initial_nummodes =  initial_iso_axion !DM: added axion isocurvature
+	!!!!!!!!!!!!!!!!!!!!
     type EvolutionVars
-       real(dl) q, q2
-       real(dl) k_buf,k2_buf ! set in initial
-       
-       integer w_ix !Index of two quintessence equations
-       integer r_ix !Index of the massless neutrino hierarchy
-       integer g_ix !Index of the photon neutrino hierarchy
-       
-!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!Axion variables
-!!!!!Axion fluid indices
-!!!!!!!   	
-       integer a_ix !Index of the two axion fluid equations
-!!!!!!!Axion mass for internal computations         
-       real(dl) m_ax
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-       
-       integer q_ix !index into q_evolve array that gives the value q
-       logical TransferOnly
-       
-       !       nvar  - number of scalar (tensor) equations for this k
-       integer nvar,nvart, nvarv
-       
-       !Max_l for the various hierarchies
-       integer lmaxg,lmaxnr,lmaxnu,lmaxgpol,MaxlNeeded
-       integer lmaxnrt, lmaxnut, lmaxt, lmaxpolt, MaxlNeededt
-       logical EvolveTensorMassiveNu(max_nu)
-       integer lmaxnrv, lmaxv, lmaxpolv
-       
-       integer polind  !index into scalar array of polarization hierarchy
-       
-       !array indices for massive neutrino equations
-       integer nu_ix(max_nu), nu_pert_ix
-       integer nq(max_nu), lmaxnu_pert
-       logical has_nu_relativistic
-       
-       !Initial values for massive neutrino v*3 variables calculated when switching
-       !to non-relativistic approx
-       real(dl) G11(max_nu),G30(max_nu)
-       !True when using non-relativistic approximation
-       logical MassiveNuApprox(max_nu)
-       real(dl) MassiveNuApproxTime(max_nu)
-       
-       !True when truncating at l=2,3 when k*tau>>1 (see arXiv:1104.2933)
-       logical high_ktau_neutrino_approx
-       
-       !Massive neutrino scheme being used at the moment
-       integer NuMethod
-       
-       !True when using tight-coupling approximation (required for stability at early times)
-       logical TightCoupling, TensTightCoupling
-       real(dl) TightSwitchoffTime
-       
-       !Numer of scalar equations we are propagating
-       integer ScalEqsToPropagate
-       integer TensEqsToPropagate
-       !beta > l for closed models
-       integer FirstZerolForBeta
-       !Tensor vars
-       real(dl) aux_buf
-       
-       real(dl) pig, pigdot !For tight coupling
-       real(dl) poltruncfac
-       
-       !PPF parameters
-       real(dl) dgrho_e_ppf, dgq_e_ppf
-       real(dl) dgrhoec_ppf, dgqec_ppf, vTc_ppf 
-       
-       logical no_nu_multpoles, no_phot_multpoles
-       integer lmaxnu_tau(max_nu)  !lmax for massive neutinos at time being integrated
-       logical nu_nonrelativistic(max_nu)
-       
-       real(dl) denlk(max_l_evolve),denlk2(max_l_evolve), polfack(max_l_evolve)
-       real(dl) Kf(max_l_evolve)
-       
-       integer E_ix, B_ix !tensor polarization indices
-       real(dl) denlkt(4,max_l_evolve),Kft(max_l_evolve)
+        real(dl) q, q2
+        real(dl) k_buf,k2_buf ! set in initial
+
+        integer w_ix !Index of two quintessence equations
+        integer r_ix !Index of the massless neutrino hierarchy
+        integer g_ix !Index of the photon neutrino hierarchy
+   
+   	!!!!!!!!!!!!!!!!!!
+   	!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   	!!!!Axion variables
+   	!!!!!Axion fluid indices
+   !!!!!!!   	
+   			integer a_ix !Index of the two axion fluid equations
+      	   	!!!!!!!Axion mass for internal computations         
+            real(dl) m_ax
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+            
+        integer q_ix !index into q_evolve array that gives the value q
+        logical TransferOnly
+
+        !       nvar  - number of scalar (tensor) equations for this k
+        integer nvar,nvart, nvarv
+
+        !Max_l for the various hierarchies
+        integer lmaxg,lmaxnr,lmaxnu,lmaxgpol,MaxlNeeded
+        integer lmaxnrt, lmaxnut, lmaxt, lmaxpolt, MaxlNeededt
+        logical EvolveTensorMassiveNu(max_nu)
+        integer lmaxnrv, lmaxv, lmaxpolv
+
+        integer polind  !index into scalar array of polarization hierarchy
+
+        !array indices for massive neutrino equations
+        integer nu_ix(max_nu), nu_pert_ix
+        integer nq(max_nu), lmaxnu_pert
+        logical has_nu_relativistic
+
+        !Initial values for massive neutrino v*3 variables calculated when switching
+        !to non-relativistic approx
+        real(dl) G11(max_nu),G30(max_nu)
+        !True when using non-relativistic approximation
+        logical MassiveNuApprox(max_nu)
+        real(dl) MassiveNuApproxTime(max_nu)
+
+        !True when truncating at l=2,3 when k*tau>>1 (see arXiv:1104.2933)
+        logical high_ktau_neutrino_approx
+
+        !Massive neutrino scheme being used at the moment
+        integer NuMethod
+
+        !True when using tight-coupling approximation (required for stability at early times)
+        logical TightCoupling, TensTightCoupling
+        real(dl) TightSwitchoffTime
+
+        !Numer of scalar equations we are propagating
+        integer ScalEqsToPropagate
+        integer TensEqsToPropagate
+        !beta > l for closed models
+        integer FirstZerolForBeta
+        !Tensor vars
+        real(dl) aux_buf
+
+        real(dl) pig, pigdot !For tight coupling
+        real(dl) poltruncfac
+
+        !PPF parameters
+        real(dl) dgrho_e_ppf, dgq_e_ppf
+		real(dl) dgrhoec_ppf, dgqec_ppf, vTc_ppf 
+
+        logical no_nu_multpoles, no_phot_multpoles
+        integer lmaxnu_tau(max_nu)  !lmax for massive neutinos at time being integrated
+        logical nu_nonrelativistic(max_nu)
+
+        real(dl) denlk(max_l_evolve),denlk2(max_l_evolve), polfack(max_l_evolve)
+        real(dl) Kf(max_l_evolve)
+
+        integer E_ix, B_ix !tensor polarization indices
+        real(dl) denlkt(4,max_l_evolve),Kft(max_l_evolve)
     end type EvolutionVars
-    
+
     !precalculated arrays
     real(dl) polfac(max_l_evolve),denl(max_l_evolve),vecfac(max_l_evolve),vecfacpol(max_l_evolve)
-    
+
     real(dl), parameter :: ep0=1.0d-2
     integer, parameter :: lmaxnu_high_ktau=3
-    
+
     real(dl) epsw
     real(dl) nu_tau_notmassless(nqmax0+1,max_nu), nu_tau_nonrelativistic(max_nu),nu_tau_massive(max_nu)
-  contains
-    
-    
+    contains
+
+
     subroutine GaugeInterface_ScalEv(EV,y,tau,tauend,tol1,ind,c,w)
-      type(EvolutionVars) EV
-      real(dl) c(24),w(EV%nvar,9), y(EV%nvar), tol1, tau, tauend
-      integer ind
-      
-      call dverk(EV,EV%ScalEqsToPropagate,derivs,tau,y,tauend,tol1,ind,c,EV%nvar,w)
-      if (ind==-3) then
-         call GlobalError('Dverk error -3: the subroutine was unable  to  satisfy  the  error ' &
-              //'requirement  with a particular step-size that is less than or * ' &
-              //'equal to hmin, which may mean that tol is too small' &
-              //'--- but most likely you''ve messed up the y array indexing; ' &
-              //'compiling with bounds checking may (or may not) help find the problem.',error_evolution)
-      end if
+    type(EvolutionVars) EV
+    real(dl) c(24),w(EV%nvar,9), y(EV%nvar), tol1, tau, tauend
+    integer ind
+
+    call dverk(EV,EV%ScalEqsToPropagate,derivs,tau,y,tauend,tol1,ind,c,EV%nvar,w)
+    if (ind==-3) then
+        call GlobalError('Dverk error -3: the subroutine was unable  to  satisfy  the  error ' &
+        //'requirement  with a particular step-size that is less than or * ' &
+        //'equal to hmin, which may mean that tol is too small' &
+        //'--- but most likely you''ve messed up the y array indexing; ' &
+        //'compiling with bounds checking may (or may not) help find the problem.',error_evolution)
+    end if
     end subroutine GaugeInterface_ScalEv
-    
+
     function next_nu_nq(nq) result (next_nq)
-      integer, intent(in) :: nq
-      integer q, next_nq
-      
-      if (nq==0) then
-         next_nq=1
-      else
-         q = nu_q(nq)
-         if (q>=10) then
+    integer, intent(in) :: nq
+    integer q, next_nq
+
+    if (nq==0) then
+        next_nq=1
+    else
+        q = nu_q(nq)
+        if (q>=10) then
             next_nq = nqmax
-         else
+        else
             next_nq = nq+1
-         end if
-      end if
-      
+        end if
+    end if
+
     end function next_nu_nq
-    
+
     recursive subroutine GaugeInterface_EvolveScal(EV,tau,y,tauend,tol1,ind,c,w)
-      use ThermoData
-      type(EvolutionVars) EV, EVout
-      real(dl) c(24),w(EV%nvar,9), y(EV%nvar), yout(EV%nvar), tol1, tau, tauend
-      integer ind, nu_i
-      real(dl) cs2, opacity, dopacity
-      real(dl) tau_switch_ktau, tau_switch_nu_massless, tau_switch_nu_massive, next_switch
-      real(dl) tau_switch_no_nu_multpoles, tau_switch_no_phot_multpoles,tau_switch_nu_nonrel
-      real(dl) noSwitch, smallTime
-      
-      noSwitch= CP%tau0+1
-      smallTime =  min(tau, 1/EV%k_buf)/100
-      
-      tau_switch_ktau = noSwitch
-      tau_switch_no_nu_multpoles= noSwitch
-      tau_switch_no_phot_multpoles= noSwitch
-      
+    use ThermoData
+    type(EvolutionVars) EV, EVout
+    real(dl) c(24),w(EV%nvar,9), y(EV%nvar), yout(EV%nvar), tol1, tau, tauend
+    integer ind, nu_i
+    real(dl) cs2, opacity, dopacity
+    real(dl) tau_switch_ktau, tau_switch_nu_massless, tau_switch_nu_massive, next_switch
+    real(dl) tau_switch_no_nu_multpoles, tau_switch_no_phot_multpoles,tau_switch_nu_nonrel
+    real(dl) noSwitch, smallTime
+
+    noSwitch= CP%tau0+1
+    smallTime =  min(tau, 1/EV%k_buf)/100
+
+    tau_switch_ktau = noSwitch
+    tau_switch_no_nu_multpoles= noSwitch
+    tau_switch_no_phot_multpoles= noSwitch
+
     !Massive neutrino switches
-      tau_switch_nu_massless = noSwitch
-      tau_switch_nu_nonrel = noSwitch
-      tau_switch_nu_massive= noSwitch
-      
-      !Evolve equations from tau to tauend, performing switches in equations if necessary.
-      
-      if (.not. EV%high_ktau_neutrino_approx .and. .not. EV%no_nu_multpoles ) then
-         tau_switch_ktau=  max(20, EV%lmaxnr-4)/EV%k_buf
-      end if
-      
-      if (CP%Num_Nu_massive /= 0) then
-         do nu_i = 1, CP%Nu_mass_eigenstates
+    tau_switch_nu_massless = noSwitch
+    tau_switch_nu_nonrel = noSwitch
+    tau_switch_nu_massive= noSwitch
+
+    !Evolve equations from tau to tauend, performing switches in equations if necessary.
+
+    if (.not. EV%high_ktau_neutrino_approx .and. .not. EV%no_nu_multpoles ) then
+        tau_switch_ktau=  max(20, EV%lmaxnr-4)/EV%k_buf
+    end if
+
+    if (CP%Num_Nu_massive /= 0) then
+        do nu_i = 1, CP%Nu_mass_eigenstates
             if (EV%nq(nu_i) /= nqmax) then
-               tau_switch_nu_massless = min(tau_switch_nu_massless,nu_tau_notmassless(next_nu_nq(EV%nq(nu_i)),nu_i))
+                tau_switch_nu_massless = min(tau_switch_nu_massless,nu_tau_notmassless(next_nu_nq(EV%nq(nu_i)),nu_i))
             else if (.not. EV%nu_nonrelativistic(nu_i)) then
-               tau_switch_nu_nonrel = min(nu_tau_nonrelativistic(nu_i),tau_switch_nu_nonrel)
+                tau_switch_nu_nonrel = min(nu_tau_nonrelativistic(nu_i),tau_switch_nu_nonrel)
             else if (EV%NuMethod==Nu_trunc .and..not. EV%MassiveNuApprox(nu_i)) then
-               tau_switch_nu_massive = min(tau_switch_nu_massive,EV%MassiveNuApproxTime(nu_i))
+                tau_switch_nu_massive = min(tau_switch_nu_massive,EV%MassiveNuApproxTime(nu_i))
             end if
-         end do
-      end if
-      
-      if (DoLateRadTruncation) then
-         if (.not. EV%no_nu_multpoles) & !!.and. .not. EV%has_nu_relativistic .and. tau_switch_nu_massless ==noSwitch)  &
-              tau_switch_no_nu_multpoles=max(15/EV%k_buf*AccuracyBoost,min(taurend,matter_verydom_tau))
-         
-         if (.not. EV%no_phot_multpoles .and. (.not.CP%WantCls .or. EV%k_buf>0.03*AccuracyBoost)) &
-              tau_switch_no_phot_multpoles =max(15/EV%k_buf,taurend)*AccuracyBoost
-      end if
-      
-      next_switch = min(tau_switch_ktau, tau_switch_nu_massless,EV%TightSwitchoffTime, tau_switch_nu_massive, &
-           tau_switch_no_nu_multpoles, tau_switch_no_phot_multpoles, tau_switch_nu_nonrel,noSwitch)
-      
-      if (next_switch < tauend) then
-         if (next_switch > tau+smallTime) then
+        end do
+    end if
+
+    if (DoLateRadTruncation) then
+        if (.not. EV%no_nu_multpoles) & !!.and. .not. EV%has_nu_relativistic .and. tau_switch_nu_massless ==noSwitch)  &
+        tau_switch_no_nu_multpoles=max(15/EV%k_buf*AccuracyBoost,min(taurend,matter_verydom_tau))
+
+        if (.not. EV%no_phot_multpoles .and. (.not.CP%WantCls .or. EV%k_buf>0.03*AccuracyBoost)) &
+        tau_switch_no_phot_multpoles =max(15/EV%k_buf,taurend)*AccuracyBoost
+    end if
+
+    next_switch = min(tau_switch_ktau, tau_switch_nu_massless,EV%TightSwitchoffTime, tau_switch_nu_massive, &
+    tau_switch_no_nu_multpoles, tau_switch_no_phot_multpoles, tau_switch_nu_nonrel,noSwitch)
+
+    if (next_switch < tauend) then
+        if (next_switch > tau+smallTime) then
             call GaugeInterface_ScalEv(EV, y, tau,next_switch,tol1,ind,c,w)
             if (global_error_flag/=0) return
-         end if
-         
-         EVout=EV
-         
-         if (next_switch == EV%TightSwitchoffTime) then
+        end if
+
+        EVout=EV
+
+        if (next_switch == EV%TightSwitchoffTime) then
             !TightCoupling
             EVout%TightCoupling=.false.
             EVout%TightSwitchoffTime = noSwitch
@@ -536,25 +543,25 @@
             !Set up variables with their tight coupling values
             y(EV%g_ix+2) = EV%pig
             call thermo(tau,cs2,opacity,dopacity)
-            
+
             if (second_order_tightcoupling) then
-               ! Francis-Yan Cyr-Racine November 2010
-               
-               y(EV%g_ix+3) = (3._dl/7._dl)*y(EV%g_ix+2)*(EV%k_buf/opacity)*(1._dl+dopacity/opacity**2) + &
-                    (3._dl/7._dl)*EV%pigdot*(EV%k_buf/opacity**2)*(-1._dl)
-               
-               y(EV%polind+2) = EV%pig/4 + EV%pigdot*(1._dl/opacity)*(-5._dl/8._dl- &
-                    (25._dl/16._dl)*dopacity/opacity**2) + &
-                    EV%pig*(EV%k_buf/opacity)**2*(-5._dl/56._dl)
-               y(EV%polind+3) = (3._dl/7._dl)*(EV%k_buf/opacity)*y(EV%polind+2)*(1._dl + &
-                    dopacity/opacity**2) + (3._dl/7._dl)*(EV%k_buf/opacity**2)*((EV%pigdot/4._dl)* &
-                    (1._dl+(5._dl/2._dl)*dopacity/opacity**2))*(-1._dl)
+                ! Francis-Yan Cyr-Racine November 2010
+
+                y(EV%g_ix+3) = (3._dl/7._dl)*y(EV%g_ix+2)*(EV%k_buf/opacity)*(1._dl+dopacity/opacity**2) + &
+                (3._dl/7._dl)*EV%pigdot*(EV%k_buf/opacity**2)*(-1._dl)
+
+                y(EV%polind+2) = EV%pig/4 + EV%pigdot*(1._dl/opacity)*(-5._dl/8._dl- &
+                (25._dl/16._dl)*dopacity/opacity**2) + &
+                EV%pig*(EV%k_buf/opacity)**2*(-5._dl/56._dl)
+                y(EV%polind+3) = (3._dl/7._dl)*(EV%k_buf/opacity)*y(EV%polind+2)*(1._dl + &
+                dopacity/opacity**2) + (3._dl/7._dl)*(EV%k_buf/opacity**2)*((EV%pigdot/4._dl)* &
+                (1._dl+(5._dl/2._dl)*dopacity/opacity**2))*(-1._dl)
             else
-               y(EV%g_ix+3) = 3./7*y(EV%g_ix+2)*EV%k_buf/opacity
-               y(EV%polind+2) = EV%pig/4
-               y(EV%polind+3) =y(EV%g_ix+3)/4
+                y(EV%g_ix+3) = 3./7*y(EV%g_ix+2)*EV%k_buf/opacity
+                y(EV%polind+2) = EV%pig/4
+                y(EV%polind+3) =y(EV%g_ix+3)/4
             end if
-         else if (next_switch==tau_switch_ktau) then
+        else if (next_switch==tau_switch_ktau) then
             !k tau >> 1, evolve massless neutrino effective fluid up to l=2
             EVout%high_ktau_neutrino_approx=.true.
             EV%nq(1:CP%Nu_mass_eigenstates) = nqmax
@@ -562,40 +569,40 @@
             call CopyScalarVariableArray(y,yout, EV, EVout)
             y=yout
             EV=EVout
-         else if (next_switch == tau_switch_nu_massless) then
+        else if (next_switch == tau_switch_nu_massless) then
             !Mass starts to become important, start evolving next momentum mode
             do nu_i = 1, CP%Nu_mass_eigenstates
-               if (EV%nq(nu_i) /= nqmax .and. &
-                    next_switch == nu_tau_notmassless(next_nu_nq(EV%nq(nu_i)),nu_i)) then
-                  EVOut%nq(nu_i) = next_nu_nq(EV%nq(nu_i))
-                  call SetupScalarArrayIndices(EVout)
-                  call CopyScalarVariableArray(y,yout, EV, EVout)
-                  EV=EVout
-                  y=yout
-                  exit
-               end if
+                if (EV%nq(nu_i) /= nqmax .and. &
+                next_switch == nu_tau_notmassless(next_nu_nq(EV%nq(nu_i)),nu_i)) then
+                    EVOut%nq(nu_i) = next_nu_nq(EV%nq(nu_i))
+                    call SetupScalarArrayIndices(EVout)
+                    call CopyScalarVariableArray(y,yout, EV, EVout)
+                    EV=EVout
+                    y=yout
+                    exit
+                end if
             end do
-         else if (next_switch == tau_switch_nu_nonrel) then
+        else if (next_switch == tau_switch_nu_nonrel) then
             !Neutrino becomes non-relativistic, don't need high L
             do nu_i = 1, CP%Nu_mass_eigenstates
-               if (.not. EV%nu_nonrelativistic(nu_i) .and.  next_switch==nu_tau_nonrelativistic(nu_i) ) then
-                  EVout%nu_nonrelativistic(nu_i)=.true.
-                  call SetupScalarArrayIndices(EVout)
-                  call CopyScalarVariableArray(y,yout, EV, EVout)
-                  EV=EVout
-                  y=yout
-                  exit
-               end if
+                if (.not. EV%nu_nonrelativistic(nu_i) .and.  next_switch==nu_tau_nonrelativistic(nu_i) ) then
+                    EVout%nu_nonrelativistic(nu_i)=.true.
+                    call SetupScalarArrayIndices(EVout)
+                    call CopyScalarVariableArray(y,yout, EV, EVout)
+                    EV=EVout
+                    y=yout
+                    exit
+                end if
             end do
-         else if (next_switch == tau_switch_nu_massive) then
+        else if (next_switch == tau_switch_nu_massive) then
             !Very non-relativistic neutrinos, switch to truncated velocity-weight hierarchy
             do nu_i = 1, CP%Nu_mass_eigenstates
-               if (.not. EV%MassiveNuApprox(nu_i) .and.  next_switch== EV%MassiveNuApproxTime(nu_i) ) then
-                  call SwitchToMassiveNuApprox(EV,y, nu_i)
-                  exit
-               end if
+                if (.not. EV%MassiveNuApprox(nu_i) .and.  next_switch== EV%MassiveNuApproxTime(nu_i) ) then
+                    call SwitchToMassiveNuApprox(EV,y, nu_i)
+                    exit
+                end if
             end do
-         else if (next_switch==tau_switch_no_nu_multpoles) then
+        else if (next_switch==tau_switch_no_nu_multpoles) then
             !Turn off neutrino hierarchies at late time where slow and not needed.
             ind=1
             EVout%no_nu_multpoles=.true.
@@ -604,7 +611,7 @@
             call CopyScalarVariableArray(y,yout, EV, EVout)
             y=yout
             EV=EVout
-         else if (next_switch==tau_switch_no_phot_multpoles) then
+        else if (next_switch==tau_switch_no_phot_multpoles) then
             !Turn off photon hierarchies at late time where slow and not needed.
             ind=1
             EVout%no_phot_multpoles=.true.
@@ -612,63 +619,63 @@
             call CopyScalarVariableArray(y,yout, EV, EVout)
             y=yout
             EV=EVout
-         end if
-         
-         call GaugeInterface_EvolveScal(EV,tau,y,tauend,tol1,ind,c,w)
-         return
+        end if
+
+        call GaugeInterface_EvolveScal(EV,tau,y,tauend,tol1,ind,c,w)
+        return
     end if
-    
+
     call GaugeInterface_ScalEv(EV,y,tau,tauend,tol1,ind,c,w)
-    
-  end subroutine GaugeInterface_EvolveScal
-  
-  subroutine GaugeInterface_EvolveTens(EV,tau,y,tauend,tol1,ind,c,w)
+
+    end subroutine GaugeInterface_EvolveScal
+
+    subroutine GaugeInterface_EvolveTens(EV,tau,y,tauend,tol1,ind,c,w)
     use ThermoData
     type(EvolutionVars) EV, EVOut
     real(dl) c(24),w(EV%nvart,9), y(EV%nvart),yout(EV%nvart), tol1, tau, tauend
     integer ind
     real(dl) opacity, cs2
-    
+
     if (EV%TensTightCoupling .and. tauend > EV%TightSwitchoffTime) then
-       if (EV%TightSwitchoffTime > tau) then
-          call dverk(EV,EV%TensEqsToPropagate, derivst,tau,y,EV%TightSwitchoffTime,tol1,ind,c,EV%nvart,w)
-       end if
-       EVOut=EV
-       EVOut%TensTightCoupling = .false.
-       call SetupTensorArrayIndices(EVout)
-       call CopyTensorVariableArray(y,yout,Ev, Evout)
-       Ev = EvOut
-       y=yout
-       call thermo(tau,cs2,opacity)
-       y(EV%g_ix+2)= 32._dl/45._dl*EV%k_buf/opacity*y(3)
-       y(EV%E_ix+2) = y(EV%g_ix+2)/4
+        if (EV%TightSwitchoffTime > tau) then
+            call dverk(EV,EV%TensEqsToPropagate, derivst,tau,y,EV%TightSwitchoffTime,tol1,ind,c,EV%nvart,w)
+        end if
+        EVOut=EV
+        EVOut%TensTightCoupling = .false.
+        call SetupTensorArrayIndices(EVout)
+        call CopyTensorVariableArray(y,yout,Ev, Evout)
+        Ev = EvOut
+        y=yout
+        call thermo(tau,cs2,opacity)
+        y(EV%g_ix+2)= 32._dl/45._dl*EV%k_buf/opacity*y(3)
+        y(EV%E_ix+2) = y(EV%g_ix+2)/4
     end if
-    
+
     call dverk(EV,EV%TensEqsToPropagate, derivst,tau,y,tauend,tol1,ind,c,EV%nvart,w)
-    
-    
-  end subroutine GaugeInterface_EvolveTens
-  
-  function DeltaTimeMaxed(a1,a2, tol) result(t)
+
+
+    end subroutine GaugeInterface_EvolveTens
+
+    function DeltaTimeMaxed(a1,a2, tol) result(t)
     real(dl) a1,a2,t
     real(dl), optional :: tol
     if (a1>1._dl) then
-       t=0
+        t=0
     elseif (a2 > 1._dl) then
-       t = DeltaTime(a1,1.01_dl, tol)
+        t = DeltaTime(a1,1.01_dl, tol)
     else
         t= DeltaTime(a1,a2, tol)
-     end if
-   end function DeltaTimeMaxed
-   
-   subroutine GaugeInterface_Init
-     !Precompute various arrays and other things independent of wavenumber
-     integer j, nu_i
-     real(dl) a_nonrel, a_mass,a_massive, time, nu_mass
-     
-     epsw = 100/CP%tau0
-     
-     if (CP%WantScalars) then
+    end if
+    end function DeltaTimeMaxed
+
+    subroutine GaugeInterface_Init
+    !Precompute various arrays and other things independent of wavenumber
+    integer j, nu_i
+    real(dl) a_nonrel, a_mass,a_massive, time, nu_mass
+
+    epsw = 100/CP%tau0
+
+    if (CP%WantScalars) then
         do j=2,max_l_evolve
             polfac(j)=real((j+3)*(j-1),dl)/(j+1)
         end do
@@ -1521,6 +1528,7 @@ grhoax_t=dorp*a2
     subroutine output(EV,y, j,tau,sources)
     use ThermoData
     use lvalues
+    use constants
     use ModelData
     implicit none
     integer j
@@ -1545,11 +1553,11 @@ grhoax_t=dorp*a2
     real(dl) w_eff
     real(dl) hdotoh,ppiedot
 
-	  real(dl)grhoax_t,clxax,v_ax,w_ax,gpres_ax ! Axion variables
-        real(dl)growth,clxtot ! DM: Growth Rate
-        real(dl) dorp
-        real(dl) gr
-        integer i	
+    real(dl)grhoax_t,clxax,v_ax,w_ax,gpres_ax ! Axion variables
+    real(dl)growth,clxtot ! DM: Growth Rate
+    real(dl) dorp
+    real(dl) gr
+    integer i	
 
     yprime = 0
     call derivs(EV,EV%ScalEqsToPropagate,tau,y,yprime)
@@ -1589,19 +1597,19 @@ grhoax_t=dorp*a2
  !Axion variables
         !update axion variables 9/19 to include interpoalted densities and eq of state from dan's w_evolve module
 	
-          	if (a .lt. CP%a_osc) then
-        call spline_out(CP%loga_table,CP%grhoax_table,CP%grhoax_table_buff,ntable,dlog10(a),gr)
-        !write(*,*) a, gr
-        !compute log10 of density use of interpolation
-        !print*,a,grhoc,grhom*(1.0d1**(dble(gr)))/((grhoc+grhob)/(a**3.0d0))
-        if (gr .eq. gr) then
-           !delog it and multiply by physical units
+    if (a .lt. CP%a_osc) then
+       call spline_out(CP%loga_table,CP%grhoax_table,CP%grhoax_table_buff,ntable,dlog10(a),gr)
+       !write(*,*) a, gr
+       !compute log10 of density use of interpolation
+       !print*,a,grhoc,grhom*(1.0d1**(dble(gr)))/((grhoc+grhob)/(a**3.0d0))
+       if (gr .eq. gr) then
+          !delog it and multiply by physical units
            dorp=grhom*(1.0d1**(dble(gr)))
         else
            dorp=0.0d0
         endif
-        else
-        	dorp=grhom*CP%drefp_hsq*((CP%a_osc/a)**3.0d0)
+     else
+        dorp=grhom*CP%drefp_hsq*((CP%a_osc/a)**3.0d0)
         
         endif
         
@@ -1811,6 +1819,11 @@ grhoax_t=dorp*a2
         end if
     end if
 
+!    if (abs(k-0.5)<1e-1) then
+ !      write(889, *) a, grho/const_rhocrit
+  !  end if
+
+    
     end subroutine output
 
 
@@ -2122,9 +2135,75 @@ grhoax_t=dorp*a2
         initv(5,i_aj3r) = 3._dl/7*x2/(4*Rv+5)
 
         !quintessence isocurvature mode
+        
+!axion isocurvature mode
+! DM: See pdf notes on axion theory
+! Derived by Dan Grin using a Matrix ODE formalism
+! All assume tau_i<<tau_osc
+		 initv(6,:)=0.0d0
+		 Ra=grhoax/(grhog+grhonu)/a_osc**3.0d0
+		 omr=(grhog+grhonu)/(grhob+grhoc)
+		 frac=grhoax/(grhoax+grhob+grhoc) ! Fraction of matter in axions	
 
-     end if
 
+		 
+		 
+		 
+	! print*,a_osc,CP%a_osc
+	!calculate normalization factor for isocurvature perturbation	 
+		if(a_osc.le.CP%aeq) then
+		 FF=1.0d0 ! DM: F(f) sets a_0 from a_osc FF=1 if aosc<aeq
+		 Konstant=1.0d0-frac
+		else		 											
+		 FF=((1.0d0-frac)+frac*(CP%aeq/a_osc)**3.0d0)**(-1.0d0)
+		 Konstant=(1.0d0-frac)/((1.0d0-frac)+frac*((CP%aeq/a_osc)**3.0d0))
+		end if
+		
+	
+		
+		initv(6,i_clxax)=1.0d0-(x*x)/(10.0d0)&
+        -Konstant*(x*x)*omtau/(180.0d0)+(1.0d0/600.0d0)*(x**4.0d0)&
+        +(53.0d0*(Konstant**2.0d0)*(x**2.0d0)*(omtau**2.0d0))/(140.0d0*5.0d0*16.0d0)
+		   ! Normalise to \delta_a=1. 
+ 		initv(6,i_v_ax)=-x/5.0d0+(x*x*x)/30.0d0+Konstant*x*omtau/(30.0d0)&
+        -x*(Konstant**2.0d0)*(omtau**2.0d0)/(84.d0)&
+        +(11.0d0*(Konstant**3.0d0)*x*(omtau**(3.0d0)))/(42.0d0*64.0d0)&
+        -Konstant*(x**3.0d0)*omtau/(120.0d0)-(x**5.0d0)/(600.0d0)&
+        -(11.0d0*(Konstant**4.0d0)*x*(omtau**4.0d0))/(63.0d0*128.0d0)&
+        +(929.0d0*(Konstant**2.0d0))*(x**3.0d0)*(omtau**2.0d0)/(3780.0d0*16.0d0*5.0d0)&
+        +((EV%m_ax**2.0d0)*x*(omtau**4.0d0)/(225.0d0*5.0d0*64.0d0*CP%omegar&
+        *(((CP%omegab+CP%omegac+CP%omegaax)/(4.0d0*CP%omegar))**4.0d0)))*(FF**4.0d0)
+	
+		
+!		initv(6,i_clxax)=1.0d0-(x*x)/(10.0d0)
+!		initv(6,i_v_ax)=-x/5.0d0
+			
+		! Normalisation of *gamma* perturbation
+		
+		 AA=Ra*(omr**4.0d0)*(FF**4.0d0)
+!		print*,AA,omtau
+		
+		 initv(6,i_clxg)= -AA/3.*omtau**4.
+         initv(6,i_clxr)=initv(6,i_clxg)
+         initv(6,i_clxb)=0.75_dl*initv(6,i_clxg)
+         initv(6,i_clxc)=initv(6,i_clxb)
+		 initv(6,i_eta)=-(0.50*initv(6,i_clxg))
+		!DM: this eta is -2eta_s, see notes and below setting y(2)
+		
+		initv(6,i_qg)=initv(6,i_clxg)*x/15.0d0
+        initv(6,i_qr)=initv(6,i_clxg)*x/15.0d0
+		initv(6,i_vb)=0.75_dl*initv(6,i_qg)
+        initv(6,i_pir)= (-9.0d0*Rb)*omtau*initv(6,i_clxg)*(1.0d0-Konstant)/(5.0d0*(75.0d0+4.0d0*Rv))
+!DM: seems pir=2 sigma_nu
+        initv(6,i_aj3r)= initv(6,i_pir)*x/(7.0d0)
+ !DM: assuming this is exactly F_{\nu 3}.
+	!	 print*,initv(6,:)
+!		print*,AA
+         end if
+
+        
+        
+        
 
     if (CP%Scalar_initial_condition==initial_vector) then
         InitVec = 0
@@ -2150,9 +2229,9 @@ grhoax_t=dorp*a2
 
 
 ! Axions
-    
-    y(EV%a_ix)=InitVec(i_clxax)
-    y(EV%a_ix+1)=InitVec(i_v_ax)
+
+		y(EV%a_ix)=InitVec(i_clxax)
+		y(EV%a_ix+1)=InitVec(i_v_ax)
     !  Photons
     y(EV%g_ix)=InitVec(i_clxg)
     y(EV%g_ix+1)=InitVec(i_qg)
@@ -2416,32 +2495,24 @@ grhoax_t=dorp*a2
     !dgrho = dgrho+(clxc*grhoc + clxb*grhob)/a 
     !grho =  grho+(grhoc+grhob)/a + grhov*a**(-1-3*w_lam)
     
-
- !! ###### Make a decision about how to include axions in the matter content. Comment out various scenarios as necessary
-    
-    !if (a_osc.lt.CP%aeq) then 
     ! DM: only include axions if they are clustered: a_osc kluge for bias as in Hlozek et al 2015. Be careful when a_osc.ge.1
-
-    !if (CP%ma.ge.1.e-25) then
     !! DM16: this modification with ma\geq 1e-25 eV to treat axions in non-linear lensing S4 fiducial model.
     ! See additional changes in halofit, and check for consistency.
-
-    if (a_osc .lt. 1) then
-    !DM16  Include axions as long as they are oscillating
+    
+    !if (a_osc.lt.CP%aeq) then
+    if (CP%ma.ge.1.e-25) then
        dgrho = dgrho+(clxc*grhoc + clxb*grhob)/a+grhoax_t*clxax
        grho =  grho+(grhoc+grhob)/a+grhoax_t
     else
+       !	write(*,*)'axions are not clustering in P(k)'
        dgrho = dgrho+(clxc*grhoc + clxb*grhob)/a
        grho =  grho+(grhoc+grhob)/a
     end if
     
     ! DM: output the growth rate
     
-
     call GrowthRate(EV,y,tau,k,a,growth,clxtot)
-
     Arr(Transfer_f) = growth
-
     Arr(Transfer_tot) = dgrho/grho/k2
     
     

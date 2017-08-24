@@ -38,6 +38,8 @@
     real(dl) actual_massless,neff_i
 !    real clock_start, clock_stop ! RH timing	
 
+    type (CAMBdata)  :: AxionIsoData ! Adding this for the iso stuff
+    type (CAMBdata)  :: AxionAdiData ! Adding this for the iso stuff
 #ifdef WRITE_FITS
     character(LEN=Ini_max_string_len) FITSfilename
 #endif
@@ -51,7 +53,7 @@ real(dl) hnot
 real(dl) aeq,omegar,phiinit,omegah2_rad,rhocrit, nnu, rh_num_nu_massless
 !Timing variables
 !real clock_totstart, clock_totstop ! RH timing 
-
+integer reni ! RH
 !Control Flag
 integer badflag
 !call cpu_time(clock_totstart) ! RH timing
@@ -91,9 +93,6 @@ integer badflag
     HighAccuracyDefault = Ini_Read_Logical('high_accuracy_default',HighAccuracyDefault)
 
     P%NonLinear = Ini_Read_Int('do_nonlinear',NonLinear_none)
-
-    if (P%NonLinear > 0) print*, 'WARNING: halofit is not currently calibrated for axions.'
-    ! See 1605.05973 and 1607.XXXX for more information
 
     P%DoLensing = .false.
     if (P%WantCls) then
@@ -147,17 +146,24 @@ integer badflag
           P%axfrac = Ini_Read_Double('axfrac') 
           P%omegaax = P%axfrac*P%omegada 
           P%omegac = (1-P%axfrac)*P%omegada 
+
        else 
           ! read in axion densities and matter densities
           P%omegac = Ini_Read_Double('omch2')/(P%H0/100)**2
           P%omegaax = Ini_Read_Double('omaxh2')/(P%H0/100)**2 
+          P%axfrac = P%omegaax/(P%omegac+P%omegaax)
        endif
 
         ! read in axion mass
        P%ma     = Ini_Read_Double('m_ax') !! RH axion mass
        if (P%ma < 0) P%ma = 10**P%ma ! RH making this exponential from the inidriver
+       P%Hinf = Ini_Read_Double('Hinf') ! H inflation in GeV 
+       P%Hinf = (10**P%Hinf)/mplanck ! computing the ratio of Hinflation to Mplanck
+!       print*, 'This is Hinflation renee', P%Hinf
+       P%axion_isocurvature = Ini_Read_Logical('axion_isocurvature', .true.)
        
-    else
+      else
+
        P%omegab = Ini_Read_Double('omega_baryon')
        P%omegac = Ini_Read_Double('omega_cdm')
        P%omegav = Ini_Read_Double('omega_lambda')
@@ -167,10 +173,6 @@ integer badflag
        
     end if
 
-    if(P%ma .ge. 1e-15) then
-       print*, "Warning: you have chosen a high axion mass. Entropy production is not included, and may affect the relic abundance calculation."
-    endif
-    
     P%tcmb   = Ini_Read_Double('temp_cmb',COBE_CMBTemp)
     P%yhe    = Ini_Read_Double('helium_fraction',0.24_dl)
 
@@ -332,10 +334,11 @@ integer badflag
 
     if (P%WantScalars .or. P%WantTransfer) then
         P%Scalar_initial_condition = Ini_Read_Int('initial_condition',initial_adiabatic)
+
         if (P%Scalar_initial_condition == initial_vector) then
             P%InitialConditionVector=0
             numstr = Ini_Read_String('initial_vector',.true.)
-            read (numstr,*) P%InitialConditionVector(1:initial_iso_neutrino_vel)
+            read (numstr,*) P%InitialConditionVector(1:initial_iso_axion)
         end if
         if (P%Scalar_initial_condition/= initial_adiabatic) use_spline_template = .false.
     end if
@@ -486,9 +489,44 @@ if (.not. CAMB_ValidateParams(P)) stop 'Stopped due to parameter error'
 
 ! call cpu_time(clock_start) ! RH timing
 
+    
+!!!!! This is where we need to be renee, but where are the cls
+    !!!! regenerate the spectra here
+    if (global_error_flag==0) then 
 
+       call CAMB_GetResults(P)
+       
 
-    if (global_error_flag==0) call CAMB_GetResults(P)
+       if (P%axion_isocurvature) then 
+!          print*, 'computing isocurvature' 
+          if (P%WantScalars)  P%RHCl_temp(lmin:P%Max_l,1,C_Temp:C_last) = Cl_scalar(lmin:P%Max_l,1,C_Temp:C_last)
+          if (P%DoLensing)  P%RHCl_temp_lensed(lmin:P%Max_l,1,C_Temp:C_Cross) = Cl_lensed(lmin:P%Max_l,1,C_Temp:C_Cross)
+          if (P%WantTensors) P%RHCl_temp_tensor(lmin:P%Max_l,1,C_Temp:C_Cross) = Cl_tensor(lmin:P%Max_l,1,C_Temp:C_Cross)
+
+          P%Scalar_initial_condition = 6
+          P%InitPower%rat(1) =  0
+          P%InitPower%ant(1) = 0
+          P%InitPower%ScalarPowerAmp(1) = P%amp_i
+          P%InitPower%an(1)= 1-P%r_val/8.d0
+          call CAMB_GetResults(P)
+         if (P%WantScalars)  then 
+             Cl_scalar(lmin:P%Max_l,1,C_Temp:C_last) = Cl_scalar(lmin:P%Max_l,1,C_Temp:C_last)  &
+                  +  P%RHCl_temp(lmin:P%Max_l,1,C_Temp:C_last)
+          end if
+
+          if (P%DoLensing) then 
+             Cl_lensed(lmin:lmax_lensed,1,C_Temp:C_Cross) = Cl_lensed(lmin:lmax_lensed,1,C_Temp:C_Cross) &
+                  +  P%RHCl_temp_lensed(lmin:lmax_lensed,1,C_Temp:C_Cross) 
+          end if
+
+          if (P%WantTensors) then 
+             Cl_tensor(lmin:P%Max_l_tensor,1,C_Temp:C_Cross) = Cl_tensor(lmin:P%Max_l_tensor,1,C_Temp:C_Cross)  &
+                  +  P%RHCl_temp_tensor(lmin:P%Max_l_tensor,1,C_Temp:C_Cross) 
+          end if
+          end if
+    end if
+
+    
     if (global_error_flag/=0) then
         write (*,*) 'Error result '//trim(global_error_message)
         stop

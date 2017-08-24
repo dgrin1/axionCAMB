@@ -37,6 +37,7 @@
     CTransTens = OutData%ClTransTens
 
     call CAMB_GetResults(Params, error)
+
     OutData%Params = Params
     OutData%MTrans = MT
     OutData%ClTransScal = CTransScal
@@ -155,6 +156,7 @@
         CP%Transfer%PK_redshifts_index=Params%Transfer%PK_redshifts_index
         CP%Transfer%PK_num_redshifts = Params%Transfer%PK_num_redshifts
         Params = CP
+
     end if
 
 
@@ -240,14 +242,15 @@
 !    call cpu_time(clock_start) ! RH timing
 !    print*, 'timing for want transfer and not (cls and scalars and not separate)', clock_stop  - clock_start ! RH timing
 
-    call_again = .false.
+! RH for axions 20 May at midnight    call_again = .false.
 
 !    call cpu_time(clock_start) ! RH timing
 
     if (.not. CP%OnlyTransfers) then
         if (CP%DoLensing .and. global_error_flag==0) then
-            call lens_Cls
-        end if
+
+              call lens_Cls
+           end if
 
         if (do_bispectrum .and. global_error_flag==0) call GetBispectrum(CTransScal)
     end if

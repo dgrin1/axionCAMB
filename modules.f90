@@ -120,10 +120,16 @@
     ! _tensor settings only used in initialization,
     !Max_l and Max_eta_k are set to the tensor variables if only tensors requested
 
-    real(dl)  :: omegab, omegac, omegav, omegan, omegaax, ma, a_osc, omegah2_rad,  axfrac, omegada 
+    real(dl)  :: omegab, omegac, omegav, omegan, omegaax, ma, a_osc,alpha_ax, r_val, omegah2_rad, amp_i, axfrac, omegada, Hinf
     !Omega baryon, CDM, Lambda and massive neutrino and axions and masses    
     real(dl)  :: H0,TCMB,yhe,Num_Nu_massless
     real(dl)  :: ratio
+
+    real(dl), dimension(100000, 1, 6) :: RHCl_temp ! RH temp vector which will contain the axion iso spectrum ! RH
+    real(dl), dimension(100000, 1, 6) :: RHCl_temp_lensed ! RH temp vector which will contain the axion iso spectrum ! RH
+    real(dl), dimension(100000, 1, 6) :: RHCl_temp_tensor ! RH temp vector which will contain the axion iso spectrum ! RH
+
+    !DM: tensor to scalar ratio is in CP for use in axion isocurvature i.c.'s 
     integer   :: Num_Nu_massive !sum of Nu_mass_numbers below
     integer   :: Nu_mass_eigenstates  !1 for degenerate masses
     logical   :: share_delta_neff !take fractional part to heat all eigenstates the same
@@ -137,7 +143,7 @@
     integer   :: OutputNormalization
     !outNone, or C_OutputNormalization=1 if > 1
 
-    logical   :: use_axfrac
+    logical   :: use_axfrac, axion_isocurvature
     logical   :: AccuratePolarization
     !Do you care about the accuracy of the polarization Cls?
 
@@ -463,6 +469,12 @@
         return
     end if
 
+    ! RH made the change as requested by the OxFish readme file
+!    open(unit=66,file="/Users/reneehlozek/Code/OxFishDec15_axion/results/thetaMC.dat",status='replace')
+!    write(66,'(f10.8)') 100*CosmomcTheta()
+!    close(unit=66) 
+
+
     if (present(error)) then
         error = 0
     else if (FeedbackLevel > 0 .and. .not. call_again) then
@@ -473,8 +485,7 @@
         write(*, '("H0                  = ", f9.6)') CP%H0
         !Axions                                                                                                                    
         write(*,'("Om_ax h^2            = ",f9.6)') CP%omegaax*(CP%H0/100)**2
-        write(*,'("a_osc               = ", e9.2)')  a_osc
-        write(*,'("phi_init            = ", f9.6)') CP%phiinit
+        write(*,'("a_osc               = ",e9.2)')  a_osc
 
 
 !!!!!!!!
@@ -2479,7 +2490,6 @@
         tau=tauminn*exp((i-1)*dlntau)
         dtau=tau-tau01
         !  Integrate Friedmann equation using inverse trapezoidal rule.
-
         a=a0+adot0*dtau
         scaleFactor(i)=a
         a2=a*a
