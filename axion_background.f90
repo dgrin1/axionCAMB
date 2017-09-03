@@ -32,10 +32,6 @@ module axion_background
 
 contains
 
-
-
-
-
 subroutine w_evolve(Params, badflag)
 !Params is the overall parameter structure to be passed back to camb, including the estimated a_osc 
 !value, table for interpolation of the adiabatic sound speed, axion EOS and axion energy density
@@ -855,6 +851,7 @@ do i=2,ntable,1
 kvec=0.0d0
 kfinal=0.0d0
 !compute next step parameters
+
 call next_step(a_arr(i),v_vec(1:2,i),kvec(1:16,1:2),kfinal(1:2),avec(1:16),omegah2_regm,&
 	&Params%omegah2_rad,omegah2_lambda,omk,hsq,&
 	&maxion_twiddle,badflag,dloga,16,cmat(1:16,1:16),&
@@ -952,6 +949,16 @@ forall(i=1:ntable)
 end forall
 Params%drefp_hsq=drefp/hsq
 Params%grhoax_table=dlog10(dexp(Params%grhoax_table))
+
+! Now moved to equations_ppf.f90
+!!! For the fisher code for later:
+!open(unit=983, file="/Users/reneehlozek/Code/OxFishDec15_axion/results/cambOutput/grhoax.dat", action="write", status="replace")
+!do i=1,ntable
+!   write(983,*) dexp(Params%loga_table(i)), Params%grhoax_table(i)
+!end do
+
+!close(983)
+!!! RH
 Params%loga_table=dlog10(dexp(Params%loga_table))
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!create spline buffer arrays for all quatntities of interest as a function of time in code, this will allow camb to calculate via interpolation any of the quantities of interest at any time
@@ -971,7 +978,22 @@ call spline(Params%loga_table(1:ntable),Params%grhoax_table(1:ntable),ntable,d1,
 
 !!feed out real (dl) valued version of all this stuff for output
 !put scalar field initial condition in planck units
-Params%phiinit=vtw*sqrt(6.0d0)                                                                                              
+Params%phiinit=vtw*sqrt(6.0d0)
+if (Params%use_axfrac) then
+   Params%axfrac = Params%axfrac
+else
+   Params%axfrac = fax
+end if
+
+if (Params%axion_isocurvature) then
+
+Params%amp_i = Params%Hinf**2/(pi**2*Params%phiinit**2)
+Params%r_val  = 2*(Params%Hinf**2/(pi**2.*Params%InitPower%ScalarPowerAmp(1)))
+Params%alpha_ax = Params%amp_i/Params%InitPower%ScalarPowerAmp(1)
+!print*, 'computing isocurvature', Params%amp_i, Params%r_val, Params%axfrac**2*Params%amp_i/Params%InitPower%ScalarPowerAmp(1), Params%Hinf
+!print*, 'computing isocurvature, Params%amp_i, Params%r_val, Params%axfrac**2*Params%amp_i/Params%InitPower%ScalarPowerAmp(1), Params%Hinf'
+end if
+
 !output omega_r
 Params%omegar=Params%omegah2_rad/hsq
 

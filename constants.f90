@@ -15,7 +15,6 @@
        real(dl), parameter :: const_pi = 3.1415926535897932384626433832795_dl
        real(dl), parameter :: const_twopi=2._dl*const_pi, const_fourpi=4._dl*const_pi
        real(dl), parameter :: const_sqrt6=2.4494897427831780981972840747059_dl
-
        real(dl), parameter :: c = 2.99792458e8_dl
        real(dl), parameter :: h_P = 6.62606896e-34_dl
         
@@ -36,12 +35,13 @@
        real(dl), parameter :: Mpc = 3.085678e22_dl !seem to be different definitions of this?
        real(dl), parameter :: MPC_in_sec = Mpc/c ! Mpc/c = 1.029272d14 in SI units
 
+       real(dl), parameter :: const_rhocrit=(8.0d0*const_pi*G*1.d3/(3.0d0*((1.d7/(MPC_in_sec*c*1.d2))**(2.0d0))))**(-1.0d0)
        real(dl), parameter :: barssc0= k_B / m_p / c**2
        real(dl), parameter :: kappa=8._dl*const_pi*G
        real(dl), parameter :: a_rad = 8._dl*const_pi**5*k_B**4/15/c**3/h_p**3
                 !7.565914e-16_dl !radiation constant for u=aT^4
 
-
+       real(dl), parameter :: mplanck = 2.435e18 ! the reduced planck mass in GeV
        real(dl), parameter :: Compton_CT = MPC_in_sec*(8.d0/3.d0)*(sigma_thomson/(m_e*c))*a_rad
         !Compton_CT is CT in Mpc units, (8./3.)*(sigma_T/(m_e*C))*a_R in Mpc
         !Used to get evolution of matter temperature
@@ -55,6 +55,7 @@
        real(dl), parameter :: COBE_CMBTemp = 2.7255_dl !(Fixsen 2009) used as default value
        real(dl), parameter :: default_nnu = 3.046_dl
 
+       
    end module constants
 
 
