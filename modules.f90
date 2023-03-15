@@ -1,5 +1,4 @@
     ! Modules used by cmbmain and other routines.
-
     !     Code for Anisotropies in the Microwave Background
     !     by Antony Lewis (http://cosmologist.info) and Anthony Challinor
     !     See readme.html for documentation.
@@ -2438,10 +2437,7 @@
 
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !axion version of recfast call                                                                                      \    
-    call Recombination_Init(CP%Recomb, CP%omegac,CP%omegab,CP%Omegan,&
-         CP%Omegav,CP%h0,CP%tcmb,CP%yhe,CP%omegaax,CP%omegar,&
-         ntable,CP%aeq,CP%a_osc,CP%drefp_hsq,CP%loga_table,&
-         CP%grhoax_table,CP%grhoax_table_buff)
+    call Recombination_Init(CP%Recomb, CP%omegac,CP%omegab,CP%Omegan,CP%Omegav,CP%h0,CP%tcmb,CP%yhe,CP%omegaax,CP%omegar, ntable,CP%aeq,CP%a_osc,CP%drefp_hsq,CP%loga_table,CP%grhoax_table,CP%grhoax_table_buff)
 	! Data structures not passed through params because camb data structures significantly different
 
     ! previous version (for vanilla_lcdm)

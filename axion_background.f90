@@ -24,6 +24,9 @@
 !In terms of these variables, there is a nice expression for the adiabatic
 ! sound speed c_ad^{2}=Pdot/\rho_dot=1+(2/3) maxion_twiddle^{2} v_{1}^{twiddle}a^{2}/(v_{2}^{twiddle}*littleh)
 
+! March 2023: RH implemented fix of axion mass unit
+! ßfrom GH issue https://github.com/dgrin1/axionCAMB/issues/6 
+! thanks to user 'astralsight' and Yilun Gua
 
 
 
@@ -244,7 +247,7 @@ maxion_twiddle= Params%ma
 !Hubble parameter in eV
 H_eV=1.d14*6.5821d-25*hnot/(MPC_in_sec*c)
 !convert axion mass units from eV to H
-maxion_twiddle = maxion_twiddle/H_eV 
+maxion_twiddle = maxion_twiddle*hnot/H_eV !RH implemented fix from GH issue
 !Total densities to juggle and use later
 omegah2_regm=omegah2_dm+omegah2_b
 omegah2_m=omegah2_regm+omegah2_ax

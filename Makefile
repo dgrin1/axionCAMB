@@ -9,8 +9,8 @@ FISHER=
 
 #Intel , -openmp toggles mutli-processor:
 #note version 10.0 gives wrong result for lensed when compiled with -openmp [fixed in 10.1]
-F90C     = ifort
-FFLAGS= -O3
+#F90C     = ifort
+#FFLAGS= -O3
 #FFLAGS = -O2 #3 -ffree-form -x f95-cpp-input
 ## This is flag is passed to the Fortran compiler allowing it to link C++ if required (not usually):
 #F90CRLINK = -cxxlib
@@ -23,8 +23,8 @@ FFLAGS= -O3
 #if pre v4.3 add -D__GFORTRAN__
 #With v4.6+ try -Ofast -march=native -fopenmp
 #On my machine v4.5 is about 20% slower than ifort
-#F90C     = gfortran -ffast-math
-##FFLAGS =  -O2  
+F90C     = gfortran
+FFLAGS =  -O3 -g -fPIC -I. -std=gnu -ffree-line-length-none
 #-ffast-math 
 
 
