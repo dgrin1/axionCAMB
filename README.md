@@ -8,7 +8,7 @@
 #### <a name="intro"></a>AxionCamb and CAMB
 
 AxionCamb is a modified version of the publicly available code "CAMB," which is available at http://camb.info/ and on GitHub at https://github.com/cmbant/CAMB
-AxionCamb computes cosmological observables for comparison with data. This is normally the CMB power spectra (T,E,B,\phi in auto and cross power), but also includes the matter power spectrum. AxionCamb was ued to obtain the axion constraints in http://arxiv.org/abs/1410.2896, the forecasts of, http://arxiv.org/abs/1708.05681, and the axion + isocurvature constraints of http://arxiv.org/abs/1607.08208.
+AxionCamb computes cosmological observables for comparison with data. This is normally the CMB power spectra (T,E,B,\phi in auto and cross power), but also includes the matter power spectrum. AxionCamb was created by Dan Grin, Renee Hlozek, and Doddy Marsh based on the Nov 2012 version of CAMB, and then used to obtain the axion constraints in http://arxiv.org/abs/1410.2896, the forecasts of, http://arxiv.org/abs/1708.05681, and the axion + isocurvature constraints of http://arxiv.org/abs/1607.08208.
 The "base" version of CAMB that AxionCamb is built off is Nov13. 
 The physics of AxionCamb is described in detail in http://arxiv.org/abs/1410.2896 (HGMF). When using this code, you should cite HGMF, and the original version of CAMB.
 For parameter estimation, AxionCamb is compatible with cosmomc, with minimal modifications. However, you should be careful with sampling and degeneracies, as described in HGMF.
