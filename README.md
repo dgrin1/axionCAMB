@@ -56,12 +56,15 @@ You should also be careful of galaxy bias if you use galaxy survey data, as disc
 
 4 bugs were identified in axionCAMB and systematically investigated by Rayne Liu and Wayne Hu (with help from axionCAMB authors):
 
-1) In the background module (axion_background.f90), a number of factors of little h were identified in the first-order casting of the KG equation, the Friedmann equation, and the adiabatic sound speed.
-2) Neutrino variables were normalized in a way that led to incorrect (at the several perecent level) neutrino contributions to the energy density when mnu!=0 -- tests of the code for non-zero neutrino mass helped uncover this issue.
+1) In the background module (axion_background.f90), a number of factors of little h were identified in the first-order casting of the KG equation, the Friedmann equation, and the adiabatic sound speed. These issues were first reported by 𝐚𝐬𝐭𝐫𝐚𝐥𝐬𝐢𝐠𝐡𝐭5 in https://github.com/dgrin1/axionCAMB/issues/6.
+2) Neutrino variables were normalized/initialized (axion_background.f90, modules.f90, inidriver_axion.f90) in a way that led to incorrect (at the several perecent level) neutrino contributions to the energy density when mnu!=0 -- tests of the code for non-zero neutrino mass helped uncover this issue.
 3) One coefficient in the 8th order RK solved used in the axion_background.f90 module was off in the 3rd decimal place.
-4) Scattered use of the COBE CMB temperature in the code (2.7255K) instead of the input value.
+4) Scattered use of the COBE CMB temperature in the code (2.7255K) instead of the input value (axion_background.f90,inidriver_axion.f90,equations_ppf.f90).
 
 These bugs have now been fixed. 
+
+Here, we provide a jupyter notebook (written by Rayne Liu, revised by Rayne Liu and Dan Grin) generating a series of plots of CMB power spectra and matter transfer functions with and without the bug fix, and a comparison with a benchmark 3/l fractional error curve used as a rule of thumb for Planck data analysis precision requirements in https://arxiv.org/pdf/astro-ph/0306052.pdf. Users should run their own Fisher-level bias/error-forecasts or consider rerunning Monte Carlo Chains with the bug-corrected version of axionCAMB available here.
+
 
 
 
