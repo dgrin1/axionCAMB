@@ -31,13 +31,18 @@
     character(LEN=Ini_max_string_len) numstr, VectorFileName, &
     InputFile, ScalarFileName, TensorFileName, TotalFileName, LensedFileName,&
     LensedTotFileName, LensPotentialFileName,ScalarCovFileName
+!new integers to keep track of choices for subprocess in jupyter
     integer i
     character(LEN=Ini_max_string_len) TransferFileNames(max_transfer_redshifts), &
     MatterPowerFileNames(max_transfer_redshifts), outroot, version_check
     real(dl) output_factor, nmassive,omnuh2,nu_massless_degeneracy,fractional_number
     real(dl) actual_massless,neff_i
 !    real clock_start, clock_stop ! RH timing	
-
+!New input (command line buffers logical variables)
+!k values, axfrac, axion mass, and accuracy params
+	logical get_scalar_cls
+	integer l_max_scalar, transfer_k_per_logint
+	real(dl) transfer_kmax, m_ax, axfrac
     type (CAMBdata)  :: AxionIsoData ! Adding this for the iso stuff
     type (CAMBdata)  :: AxionAdiData ! Adding this for the iso stuff
 #ifdef WRITE_FITS
@@ -78,6 +83,9 @@ integer badflag
     call CAMB_SetDefParams(P)
 
     P%WantScalars = Ini_Read_Logical('get_scalar_cls')
+
+
+
     P%WantVectors = Ini_Read_Logical('get_vector_cls',.false.)
     P%WantTensors = Ini_Read_Logical('get_tensor_cls',.false.)
 
@@ -98,6 +106,7 @@ integer badflag
     if (P%WantCls) then
         if (P%WantScalars  .or. P%WantVectors) then
             P%Max_l = Ini_Read_Int('l_max_scalar')
+
             P%Max_eta_k = Ini_Read_Double('k_eta_max_scalar',P%Max_l*2._dl)
             if (P%WantScalars) then
                 P%DoLensing = Ini_Read_Logical('do_lensing',.false.)
@@ -156,6 +165,7 @@ integer badflag
 
         ! read in axion mass
        P%ma     = Ini_Read_Double('m_ax') !! RH axion mass
+  
        if (P%ma < 0) P%ma = 10**P%ma ! RH making this exponential from the inidriver
        P%Hinf = Ini_Read_Double('Hinf') ! H inflation in GeV 
        P%Hinf = (10**P%Hinf)/mplanck ! computing the ratio of Hinflation to Mplanck
@@ -170,6 +180,7 @@ integer badflag
        P%omegan = Ini_Read_Double('omega_neutrino')
        P%omegaax = Ini_Read_Double('omega_axion')/(P%H0/100)**2
        P%ma     = Ini_Read_Double('m_ax')  
+
        
     end if
 
@@ -179,7 +190,12 @@ integer badflag
 
     !Compute  some basic constants
     rhocrit=(8.0d0*const_pi*G*1.d3/(3.0d0*((1.d7/(MPC_in_sec*c*1.d2))**(2.0d0))))**(-1.0d0)
-    omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
+
+
+!!!4/8 RL -- COBE temperature swapped out
+!to whatever is in .ini   file omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
+omegah2_rad=((P%tcmb**4.0d0)/(rhocrit))/(c**2.0d0)
+
     omegah2_rad=omegah2_rad*a_rad*1.d1/(1.d4)
     
     !DG May 25 2015
@@ -217,8 +233,37 @@ integer badflag
         end if
      end if
      
+!!!4/8 DG Error in original AxionCAMB
+!!! massless neutrino contribution wrong
+!!!When neutrinos are massive
+!!correcting H contributions already
+if (P%Num_nu_massive > 0) then
+    if (P%Nu_mass_eigenstates==0) stop 'Have Num_nu_massive>0 but no nu_mass_eigenstates'
+    if (P%Nu_mass_eigenstates==1 .and. P%Nu_mass_numbers(1)==0) P%Nu_mass_numbers(1) = P%Num_Nu_Massive
+    if (all(P%Nu_mass_numbers(1:P%Nu_mass_eigenstates)==0)) P%Nu_mass_numbers=1 !just assume one for all
+    if (P%share_delta_neff) then
+        !default case of equal heating of all neutrinos
+        fractional_number = P%Num_Nu_massless + P%Num_Nu_massive
+        actual_massless = int(P%Num_Nu_massless + 1e-6_dl)
+        neff_i = fractional_number/(actual_massless + P%Num_Nu_massive)
+        nu_massless_degeneracy = neff_i*actual_massless
+        P%Nu_massless_degeneracy=nu_massless_degeneracy
+        P%Nu_mass_degeneracies(1:P%Nu_mass_eigenstates) = P%Nu_mass_numbers(1:P%Nu_mass_eigenstates)*neff_i
+    end if
+    if (abs(sum(P%Nu_mass_fractions(1:P%Nu_mass_eigenstates))-1) > 1e-4) &
+    stop 'Nu_mass_fractions do not add up to 1'
+else
+    P%Nu_mass_eigenstates = 0
+end if
+!!!!!!!
+!!!4/8 RL COBE ->CMB input temp again     
 
-     grhog= ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(COBE_CMBTemp**4.0d0)*(Mpc**2.0d0) 
+    !  grhog= ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(COBE_CMBTemp**4.0d0)*(Mpc**2.0d0) 
+!      
+     
+     grhog= ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(P%tcmb**4.0d0)*(Mpc**2.0d0) 
+
+     
      P%grhor = (7.0d0/8.0d0)*((4.0d0/11.0d0)**(4.0d0/3.0d0))*grhog
      
      ! RH added this here because we are calculating omegav - but not trying to change anything globally

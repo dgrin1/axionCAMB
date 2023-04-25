@@ -214,9 +214,17 @@
 !different from regular CAMB
 !
         rhocrit=(8.0d0*const_pi*G*1.d3/(3.0d0*((1.d7/(MPC_in_sec*c*1.d2))**(2.0d0))))**(-1.0d0)
-        omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
-        omegah2_rad=omegah2_rad*a_rad*1.d1/(1.d4)
+  
+!!!!!4/8   RL CMB temp correction  
+        ! omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
+
+omegah2_rad=((CP%TCMB**4.0d0)/(rhocrit))/(c**2.0d0)
+
+
+    omegah2_rad=omegah2_rad*a_rad*1.d1/(1.d4)
         nnu=CP%Num_Nu_massless
+        
+        
         omegah2_rad=omegah2_rad+(nnu*grhor*(c**2.0d0)/((1.d5**2.0d0)))/3.0d0 
         GetOmegak = 1.0d0 - (CP%omegab+CP%omegac+CP%omegav+CP%omegan+CP%omegaax)-omegah2_rad/((CP%H0/1.d2)**2.0d0)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	!!

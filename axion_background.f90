@@ -255,15 +255,36 @@ fax=omegah2_ax/omegah2_m
 !Initialize massive and massless neutrino variables
 call Nu_init
 grhom = 3.0d0*(hsq*1.d10)/(c**2.0d0) 
-grhog = ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(COBE_CMBTemp**4.0d0)*(Mpc**2.0d0) 
+
+
+!!!!!4/8 RL TCMB changes again (COBE->input TCMB)
+! grhog = ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(COBE_CMBTemp**4.0d0)*(Mpc**2.0d0) 
+
+grhog = ((kappa/(c**2.0d0)*4.0d0*sigma_boltz)/(c**3.0d0))*(Params%TCMB**4.0d0)*(Mpc**2.0d0)
+
+
+
 grhor = (7.0d0/8.0d0)*((4.0d0/11.0d0)**(4.0d0/3.0d0))*grhog 
 !calculate critical density
 rhocrit=(8.0d0*const_pi*G*1.d3/(3.0d0*((1.d7/(MPC_in_sec*c*1.d2))**(2.0d0))))**(-1.0d0)
-Params%omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
+
+!4/8 RL correct COBE-> regular CMB temperature
+
+! Params%omegah2_rad=((COBE_CMBTemp**4.0d0)/(rhocrit))/(c**2.0d0)
+
+Params%omegah2_rad=((Params%TCMB**4.0d0)/(rhocrit))/(c**2.0d0)
+
+
 Params%omegah2_rad=Params%omegah2_rad*a_rad*1.d1/(1.d4)
 !calculate omega rad using starndard formula
 !Contribution of photons and massless neutrinos to H/(100 km /s/Mpc)
-lhsqcont_massless=(Params%Num_Nu_massless*grhor*(c**2.0d0)/((1.d5**2.0d0)))/3.0d0
+
+!!!DG 4/8/2023 -- again, deal with neutrino error
+!lhsqcont_massless=(Params%Num_Nu_massless*grhor*(c**2.0d0)/((1.d5**2.0d0)))/3.0d0
+lhsqcont_massless=(Params%nu_massless_degeneracy*grhor*(c**2.0d0)/((1.d5**2.0d0)))/3.0d0
+!!!!!
+
+
 
 Params%omegah2_rad=Params%omegah2_rad+lhsqcont_massless
 !print*, 'hi renee', Params%omegah2_rad
@@ -474,7 +495,14 @@ svec(11)=.16452330d0
 svec(12)=0.176659510d0
 svec(13)=0.23920102d0
 svec(14)=0.39484274d-2
-svec(15)=0.3082649547580d-1
+
+!4/8 DG typo in RK78 coefficient (see jupyter notebook for reference)
+!svec(15)=0.3082649547580d-1
+svec(15)=0.3072649547580d-1
+
+
+
+
 !END NEEDS WORK
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! begin initialization procedure, shoot for best phi_init
@@ -906,7 +934,12 @@ Params%grhoax_table=dlog(grhoax_table_internal)
 !!Apply analytic expression for Pdot/rdhot so that
 !!noisy numerical derivatives need no be used
 forall(i=1:ntable)
-Params%cs2_table(i)=1.0d0+2.0d0*((maxion_twiddle*a_arr(i))**2.0d0)*v_vec(1,i)/(3.0d0*v_vec(2,i)*littlehfunc(i))
+
+!little h error in adiabatic sound speed
+!4/28 RL + DG
+! Params%cs2_table(i)=1.0d0+2.0d0*((maxion_twiddle*a_arr(i))**2.0d0)*v_vec(1,i)/(3.0d0*v_vec(2,i)*littlehfunc(i))
+!Corrected expression
+Params%cs2_table(i)=1.0d0+2.0d0*((maxion_twiddle*a_arr(i))**2.0d0)*v_vec(1,i)*dsqrt(hsq)/(3.0d0*v_vec(2,i)*littlehfunc(i))
 end forall
 Params%cs2_table(1)=Params%cs2_table(2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1029,9 +1062,23 @@ call lh(omegah2_regm,omegah2_rad,omegah2_lambda,omk,hsq,maxion_twiddle,a,v,lhr,b
 
 !calculate fluid derivatives (d/dloga )for next step
 !Solving Equation described and defined in top part of this fortran file
-dvt_da(1)=v(2)/(a*(lhr))
+
+! First reported by astralsight5 in https://github.com/dgrin1/axionCAMB/issues/6.
+
+!Confirmed by RL and DG
+
+!Correction 4/8 -- dimensionless H normalization error -- see notebook and or latex note
+
+! dvt_da(1)=v(2)/(a*(lhr))
+! dvt_da(2)=-2.0d0*v(2)/(a)-(maxion_twiddle**2.0d0)*a&
+!       *v(1)/(lhr)
+      
+
+!correct code 4/8
+dvt_da(1)=v(2)*dsqrt(hsq)/(a*(lhr))
 dvt_da(2)=-2.0d0*v(2)/(a)-(maxion_twiddle**2.0d0)*a&
-      *v(1)/(lhr)
+      *v(1)*dsqrt(hsq)/(lhr)      
+
 dvt_dloga(1:2)=a*dvt_da(1:2)
 end subroutine derivs
 
