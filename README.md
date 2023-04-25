@@ -14,7 +14,7 @@ The physics of AxionCamb is described in detail in http://arxiv.org/abs/1410.289
 For parameter estimation, AxionCamb is compatible with cosmomc, with minimal modifications. However, you should be careful with sampling and degeneracies, as described in HGMF.
 AxionCamb is also compatible as a module in cosmosis (https://bitbucket.org/joezuntz/cosmosis/wiki/Home)
 
-Posted here is axionCAMB 2.0, incorporating changes made by Rayne Liu, Wayne Hu, and Daniel Grin. See below for detailed description of bugs, bug fixes, and jupyter comparison notebooks assessing quantiatively the impact of the bugs for observables.
+Posted here is axionCAMB 2.0, incorporating changes made by Rayne Liu, Wayne Hu, and Daniel Grin (4/23/2023). See below for detailed description of bugs, bug fixes, and jupyter comparison notebooks assessing quantiatively the impact of the bugs for observables.
 
 
 
@@ -52,7 +52,7 @@ The background evolution is computed in axion_background.f90, which creates an a
 You should be careful if you use any non-linear options (setting do_nonlinear \= 0). AxionCamb uses halofit_ppf.f90 with various modifications. The treatment of axions is not expected to be quantitatively correct, and various approximations are made (these will documented at a later date). The default version of halofit is set to the original "Smith" version, as this is expected to be most stable.
 You should also be careful of galaxy bias if you use galaxy survey data, as discussed in HGMF.
 
-#### <a name="warnings"></a>Bug Fix
+#### <a name="warnings"></a>Bug Fix 4/26/2023.
 Contributions indicated by RL (Rayne Liu), Wayne Hu (WH), and Dan Grin (DG)
 
 4 bugs were identified in axionCAMB and systematically investigated by Rayne Liu and Wayne Hu (with help from axionCAMB authors):
