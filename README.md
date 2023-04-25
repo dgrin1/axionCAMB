@@ -69,7 +69,11 @@ BUG fix by RL with assistance from DG and WH.
 
 These bugs have now been fixed. 
 
-Here, we provide a jupyter notebook (https://github.com/dgrin1/axionCAMB/blob/master/bugfix_compare.ipynb), (written by Rayne Liu, revised by Rayne Liu and Dan Grin) generating a series of plots of CMB power spectra and matter transfer functions with and without the bug fix, and a comparison with a benchmark 3/l fractional error curve used as a rule of thumb for Planck data analysis precision requirements in https://arxiv.org/pdf/astro-ph/0306052.pdf. Users should run their own Fisher-level bias/error-forecasts or consider rerunning Monte Carlo Chains with the bug-corrected version of axionCAMB available here.
+Here, we provide a jupyter notebook (https://github.com/dgrin1/axionCAMB/blob/master/bugfix_compare.ipynb), (written by Rayne Liu, revised by Rayne Liu and Dan Grin) generating a series of plots of CMB power spectra and matter transfer functions with and without the bug fix, and a comparison with a benchmark 3/l fractional error curve used as a rule of thumb for Planck data analysis precision requirements in https://arxiv.org/pdf/astro-ph/0306052.pdf. If a user wants to explore and extend these notebooks (perhaps, for example, by adding weak gravitational lensing to the before/after comparison), they should switch to the bugfix_2023_explore branch of axionCAMB on github - here they can find a pre and post bug-fix version of the code, with additional changes made to easily call the code from python notebooks and output desired k values for transfer function comparisons. 
+
+Additionally, the legacy axionCAMB 1.0 version is available through the github branch archive_1.0.
+
+Users should run their own Fisher-level bias/error-forecasts or consider rerunning Monte Carlo Chains with the bug-corrected version of axionCAMB available here.
 
 
 
