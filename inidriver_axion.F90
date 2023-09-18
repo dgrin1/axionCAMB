@@ -38,11 +38,6 @@
     real(dl) output_factor, nmassive,omnuh2,nu_massless_degeneracy,fractional_number
     real(dl) actual_massless,neff_i
 !    real clock_start, clock_stop ! RH timing	
-!New input (command line buffers logical variables)
-!k values, axfrac, axion mass, and accuracy params
-	logical get_scalar_cls
-	integer l_max_scalar, transfer_k_per_logint
-	real(dl) transfer_kmax, m_ax, axfrac
     type (CAMBdata)  :: AxionIsoData ! Adding this for the iso stuff
     type (CAMBdata)  :: AxionAdiData ! Adding this for the iso stuff
 #ifdef WRITE_FITS
