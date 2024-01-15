@@ -613,7 +613,9 @@ do j=1,nphi,1
 	&maxion_twiddle,badflag,dloga,16,cmat(1:16,1:16),lhsqcont_massless,lhsqcont_massive,&
 	&Params%Nu_mass_eigenstates,Nu_masses)
    
-   diagnostic(1)=dfac*littlehfunc(1)/a_arr(1)
+   ! diagnostic(1)=dfac*littlehfunc(1)/a_arr(1)
+   ! YG: correction
+   diagnostic(1)=dfac*littlehfunc(1)/a_arr(1)/hnot
    
 !!!!
 
@@ -655,7 +657,11 @@ do j=1,nphi,1
       
       !compare m to nH and identify a reasonable guess for when a given history crosses the m=3H 
       ! condition (and thus when the code will switch from pure scalar evolution to coherent oscillation)
-      diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)
+      ! diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)
+
+      ! YG: correction: currently, it is H / 100 km/s/Mpc but we probably want diagnostic = H / H_0 * dfac
+      ! so that maxion_twiddle / diagnostic = m_a / H_0  / (dfac * H / H_0) = m_a / (dfac * H)
+      diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)/hnot
       ! find first guess for aosc
       if (i .gt. 1) then
          if (aosc .eq. 15.0d0) then
@@ -722,7 +728,9 @@ aosc=dexp(laosc)
 !calculate axion energy density fraction (compared to total matter+axion)
 !parcel these numbers of interest into an array which sweeps through different v1 values  
 !Beyond a>aosc, a simple a^-3 energy density scaling is applied                
-fout=((maxion_twiddle*phiosc)**2.0d0+(phidosc/aosc)**2.0d0)*(aosc**3.0d0)
+! fout=((maxion_twiddle*phiosc)**2.0d0+(phidosc/aosc)**2.0d0)*(aosc**3.0d0)
+! YG: correction
+fout=((maxion_twiddle*phiosc)**2.0d0+(phidosc/aosc)**2.0d0)*(aosc**3.0d0) * hsq
 fout=fout/(omegah2_regm+((maxion_twiddle*phiosc)**2.0d0+(phidosc/aosc)**2.0d0)*(aosc**3.0d0))
 !print*,vtwiddle_init,aosc,fout,fax
 fout_arr(j)=fout
@@ -732,7 +740,9 @@ f_arr=dexp(f_arr)
 else
 !(case of no oscillation, just use result from full scalar field evolution)
 f_arr=dexp(f_arr)
-fout=(v_vec(2,ntable)/a_arr(ntable))**2.0d0+(maxion_twiddle*v_vec(1,ntable))**2.0d0
+! fout=(v_vec(2,ntable)/a_arr(ntable))**2.0d0+(maxion_twiddle*v_vec(1,ntable))**2.0d0
+! YG: correction
+fout=(v_vec(2,ntable)/a_arr(ntable))**2.0d0+(maxion_twiddle*v_vec(1,ntable))**2.0d0 * hsq
 fout=fout/(fout+omegah2_regm)
 fout_arr(j)=fout
 fout_check_arr(j)=fout/fax
@@ -889,11 +899,15 @@ enddo
 !Compute m/3H as a function of scale factor, as well as the scalar field equation of state
 !and appropriately normalized energy density
 forall(i=1:ntable)
-diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)
+! diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)
+! YG: correction
+diagnostic(i)=dfac*littlehfunc(i)/a_arr(i)/hnot
 Params%wax_table(i)=(((v_vec(2,i)/(a_arr(i)))**2.0d0)-((v_vec(1,i)*maxion_twiddle)**2.0d0))
 Params%wax_table(i)=Params%wax_table(i)/(((v_vec(2,i)/(a_arr(i)))**2.0d0)+((v_vec(1,i)*maxion_twiddle)**2.0d0))
 !!tabulate axion energy density
-grhoax_table_internal(i)=((v_vec(2,i)/a_arr(i))**2.0d0+(maxion_twiddle*v_vec(1,i))**2.0d0)
+! grhoax_table_internal(i)=((v_vec(2,i)/a_arr(i))**2.0d0+(maxion_twiddle*v_vec(1,i))**2.0d0)
+! YG: correction
+grhoax_table_internal(i)=((v_vec(2,i)/a_arr(i))**2.0d0+(maxion_twiddle*v_vec(1,i))**2.0d0) * hsq
 end forall
 !This is the axion energy density *h^2/(3H_0^2/8\pi G), where h is the dimensionless Hubble Parameter
 !so in camb's definitions grhoa2_axion=grhom*grhox_table_internal(i)
@@ -1114,8 +1128,11 @@ littlehfunc=(omegah2_regm/(a**3.0d0)+omegah2_rad/(a**4.0d0))+&
 	&sum(lhsqcont_massive*mass_correctors,Nu_mass_eigenstates)/(a**4.0d0)
 
 !Contributions from cosmological constant and scalar field
-littlehfunc=littlehfunc+omegah2_lambda+((v(2)/a)**2.0d0)
-littlehfunc=littlehfunc+(maxion_twiddle*v(1))**2.0d0
+! littlehfunc=littlehfunc+omegah2_lambda+((v(2)/a)**2.0d0)
+! littlehfunc=littlehfunc+(maxion_twiddle*v(1))**2.0d0
+! YG: correction
+littlehfunc=littlehfunc+omegah2_lambda+((v(2)/a)**2.0d0)*hsq
+littlehfunc=littlehfunc+(maxion_twiddle*v(1))**2.0d0*hsq
 littlehfunc=littlehfunc*(a**2.0d0)+omk*hsq
 ! DM flag histories where h goes negative, i.e. do not want collapsing universe
 if (littlehfunc .le. 0.0d0) then
